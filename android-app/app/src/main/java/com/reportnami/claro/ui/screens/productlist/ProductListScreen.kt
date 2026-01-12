@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.reportnami.claro.data.api.model.ProductDto
+import com.reportnami.claro.ui.components.ProductCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,7 +108,12 @@ fun ProductListScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         items(state.items) { item ->
-                            ProductRow(item = item, onClick = { onOpenProduct(item.id) })
+                            ProductCard(
+                                item = item,
+                                isFavorite = false,
+                                onToggleFavorite = null,
+                                onClick = { onOpenProduct(item.id) },
+                            )
                         }
 
                         item {
