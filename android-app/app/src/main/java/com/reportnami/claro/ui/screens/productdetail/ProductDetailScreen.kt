@@ -10,6 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -32,6 +36,8 @@ fun ProductDetailScreen(
     productId: Long?,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenReviews: (Long) -> Unit,
+    onAddReview: (Long) -> Unit,
     viewModel: ProductDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -48,7 +54,7 @@ fun ProductDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                            imageVector = Icons.Filled.ArrowBack,
                             contentDescription = "Back",
                         )
                     }
@@ -56,7 +62,7 @@ fun ProductDetailScreen(
                 actions = {
                     IconButton(onClick = onOpenSettings) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Default.Settings,
+                            imageVector = Icons.Filled.Settings,
                             contentDescription = "Settings",
                         )
                     }
@@ -104,6 +110,16 @@ fun ProductDetailScreen(
                     Text(text = "Price: ${p.price ?: ""}")
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "⭐ ${p.averageRating ?: "-"} (${p.reviewCount ?: 0})")
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Button(onClick = { onOpenReviews(p.id) }) {
+                            Text("Reviews")
+                        }
+                        Button(onClick = { onAddReview(p.id) }) {
+                            Text("Add Review")
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(18.dp))
                     Text(text = "Smart Review Insights", style = MaterialTheme.typography.titleMedium)

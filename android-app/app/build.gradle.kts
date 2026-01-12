@@ -16,7 +16,11 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080\"")
+        buildConfigField(
+            "String",
+            "BASE_URL",
+            "\"https://solitaryai-project-product-review-production.up.railway.app\""
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -26,7 +30,11 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080\"")
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"https://solitaryai-project-product-review-production.up.railway.app\""
+            )
         }
         release {
             isMinifyEnabled = false
@@ -73,6 +81,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
 
     implementation("androidx.navigation:navigation-compose:2.7.7")
 

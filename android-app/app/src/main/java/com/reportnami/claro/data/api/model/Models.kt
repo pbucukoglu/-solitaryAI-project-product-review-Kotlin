@@ -36,6 +36,37 @@ data class ReviewDto(
     val createdAt: String?,
 )
 
+data class CreateReviewRequestDto(
+    val productId: Long,
+    val comment: String?,
+    val rating: Int,
+    val reviewerName: String?,
+    val deviceId: String,
+)
+
+data class UpdateReviewRequestDto(
+    val comment: String?,
+    val rating: Int,
+    val reviewerName: String?,
+    val deviceId: String,
+)
+
+data class HelpfulVoteResponseDto(
+    val reviewId: Long,
+    val helpfulCount: Long,
+    val helpfulByMe: Boolean,
+)
+
+data class TranslateRequestDto(
+    val lang: String,
+    val texts: List<String>,
+)
+
+data class TranslateResponseDto(
+    @SerializedName("translations")
+    val translations: List<String>?,
+)
+
 data class ReviewSummaryResponseDto(
     val productId: Long,
     val lang: String?,

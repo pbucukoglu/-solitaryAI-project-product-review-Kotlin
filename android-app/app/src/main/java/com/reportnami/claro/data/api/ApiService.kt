@@ -1,10 +1,15 @@
 package com.reportnami.claro.data.api
 
+import com.reportnami.claro.data.api.model.CreateReviewRequestDto
+import com.reportnami.claro.data.api.model.HelpfulVoteResponseDto
 import com.reportnami.claro.data.api.model.PageResponse
 import com.reportnami.claro.data.api.model.ProductDetailDto
 import com.reportnami.claro.data.api.model.ProductDto
 import com.reportnami.claro.data.api.model.ReviewDto
 import com.reportnami.claro.data.api.model.ReviewSummaryResponseDto
+import com.reportnami.claro.data.api.model.TranslateRequestDto
+import com.reportnami.claro.data.api.model.TranslateResponseDto
+import com.reportnami.claro.data.api.model.UpdateReviewRequestDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -52,13 +57,13 @@ interface ApiService {
 
     @POST("/api/reviews")
     suspend fun createReview(
-        @Body body: Any,
+        @Body body: CreateReviewRequestDto,
     ): ReviewDto
 
     @PUT("/api/reviews/{reviewId}")
     suspend fun updateReview(
         @Path("reviewId") reviewId: Long,
-        @Body body: Any,
+        @Body body: UpdateReviewRequestDto,
     ): ReviewDto
 
     @DELETE("/api/reviews/{reviewId}")
@@ -71,5 +76,10 @@ interface ApiService {
     suspend fun toggleHelpful(
         @Path("reviewId") reviewId: Long,
         @Query("deviceId") deviceId: String,
-    ): Any
+    ): HelpfulVoteResponseDto
+
+    @POST("/api/translate")
+    suspend fun translate(
+        @Body body: TranslateRequestDto,
+    ): TranslateResponseDto
 }
