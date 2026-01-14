@@ -108,10 +108,11 @@ fun ProductListScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         items(state.items) { item ->
+                            val isFav = state.favoriteIds.contains(item.id)
                             ProductCard(
                                 item = item,
-                                isFavorite = false,
-                                onToggleFavorite = null,
+                                isFavorite = isFav,
+                                onToggleFavorite = { viewModel.toggleFavorite(item.id) },
                                 onClick = { onOpenProduct(item.id) },
                             )
                         }

@@ -4,22 +4,26 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.reportnami.claro.data.api.model.ProductDto
 import com.reportnami.claro.data.repository.ProductRepository
+import com.reportnami.claro.data.repository.WishlistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProductListViewModel @Inject constructor(
     private val productRepository: ProductRepository,
+    private val wishlistRepository: WishlistRepository,
 ) : ViewModel() {
 
     data class UiState(
         val isLoading: Boolean = false,
         val error: String? = null,
         val items: List<ProductDto> = emptyList(),
+        val favoriteIds: Set<Long> = emptySet(),
         val page: Int = 0,
         val hasMore: Boolean = true,
         val search: String = "",
@@ -31,6 +35,11 @@ class ProductListViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            wishlistRepository.favoriteIds.collect { ids ->
+                _uiState.update { it.copy(favoriteIds = ids) }
+            }
+        }
         refresh()
     }
 
@@ -102,5 +111,11 @@ class ProductListViewModel @Inject constructor(
 
     fun setSearch(text: String) {
         _uiState.value = _uiState.value.copy(search = text)
+    }
+
+    fun toggleFavorite(productId: Long) {
+        viewModelScope.launch {
+            runCatching { wishlistRepository.toggle(productId) }
+        }
     }
 }
