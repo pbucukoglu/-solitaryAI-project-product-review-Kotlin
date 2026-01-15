@@ -61,8 +61,8 @@ class ProductListViewModel @Inject constructor(
         val current = _uiState.value
         _uiState.value = current.copy(isLoading = true, error = null, page = 0, hasMore = !current.showFavorites)
         viewModelScope.launch {
-            runCatching {
-                if (current.showFavorites) {
+            if (current.showFavorites) {
+                runCatching {
                     loadFavoriteProducts(
                         ids = current.favoriteIds,
                         selectedCategory = current.selectedCategory,
@@ -73,7 +73,19 @@ class ProductListViewModel @Inject constructor(
                         sortBy = current.sortBy,
                         sortDir = current.sortDir,
                     )
-                } else {
+                }.onSuccess { items ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        items = items,
+                        page = 0,
+                        hasMore = false,
+                        error = null,
+                    )
+                }.onFailure { e ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = e.message ?: "Unknown error")
+                }
+            } else {
+                runCatching {
                     productRepository.getProducts(
                         page = 0,
                         size = 20,
@@ -84,30 +96,19 @@ class ProductListViewModel @Inject constructor(
                         minRating = current.minRating,
                         minPrice = current.minPrice.takeIf { it.isNotBlank() },
                         maxPrice = current.maxPrice.takeIf { it.isNotBlank() },
-                    ).also { lastAllItems = it.content }
-                }
-            }.onSuccess { res ->
-                if (current.showFavorites) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        items = res,
-                        page = 0,
-                        hasMore = false,
-                        error = null,
                     )
-                } else {
-                    val items = res.content
-                    val hasMore = (res.last == false)
+                }.onSuccess { res ->
+                    lastAllItems = res.content
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        items = items,
+                        items = res.content,
                         page = res.number ?: 0,
-                        hasMore = hasMore,
+                        hasMore = (res.last == false),
                         error = null,
                     )
+                }.onFailure { e ->
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = e.message ?: "Unknown error")
                 }
-            }.onFailure { e ->
-                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message ?: "Unknown error")
             }
         }
     }

@@ -8,10 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +21,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -33,16 +37,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
@@ -58,8 +61,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.reportnami.claro.data.api.model.ProductDto
 import com.reportnami.claro.ui.components.ProductCard
 import com.reportnami.claro.ui.theme.ClaroTheme
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun ProductListScreen(
     onOpenProduct: (Long) -> Unit,
@@ -68,8 +72,19 @@ fun ProductListScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val extra = ClaroTheme.colorsExtra
+    val scope = rememberCoroutineScope()
 
     var showFilters by rememberSaveable { mutableStateOf(false) }
+
+    val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    LaunchedEffect(showFilters) {
+        if (showFilters) sheetState.show() else sheetState.hide()
+    }
+    LaunchedEffect(sheetState.currentValue) {
+        if (sheetState.currentValue == ModalBottomSheetValue.Hidden) {
+            showFilters = false
+        }
+    }
 
     var tempCategory by remember(showFilters) { mutableStateOf(state.selectedCategory) }
     var tempSortBy by remember(showFilters) { mutableStateOf(state.sortBy) }
@@ -99,17 +114,142 @@ fun ProductListScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Products") })
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-        ) {
+    ModalBottomSheetLayout(
+        sheetState = sheetState,
+        sheetContent = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Filters & Sort",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                    )
+                    IconButton(onClick = { showFilters = false }) {
+                        Icon(imageVector = Icons.Filled.Close, contentDescription = "Close")
+                    }
+                }
+
+                Text(text = "Category", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    categories.forEach { c ->
+                        SelectChip(
+                            text = c,
+                            selected = tempCategory == c,
+                            onClick = { tempCategory = if (tempCategory == c) null else c },
+                        )
+                    }
+                }
+
+                Text(text = "Sort by", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    sortOptions.forEach { opt ->
+                        SelectChip(
+                            text = opt.label,
+                            selected = tempSortBy == opt.sortBy && tempSortDir == opt.sortDir,
+                            onClick = {
+                                tempSortBy = opt.sortBy
+                                tempSortDir = opt.sortDir
+                            },
+                            fill = true,
+                        )
+                    }
+                }
+
+                Text(text = "Minimum rating", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    listOf(4, 3, 2, 1).forEach { r ->
+                        SelectChip(
+                            text = "${r}+",
+                            selected = tempMinRating == r,
+                            onClick = { tempMinRating = if (tempMinRating == r) null else r },
+                        )
+                    }
+                }
+
+                Text(text = "Price range", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    androidx.compose.material.OutlinedTextField(
+                        modifier = Modifier.weight(1f),
+                        value = tempMinPrice,
+                        onValueChange = { tempMinPrice = it },
+                        singleLine = true,
+                        placeholder = { Text("Min") },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = extra.surfaceAlt,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = extra.border,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            textColor = MaterialTheme.colorScheme.onSurface,
+                        ),
+                    )
+                    androidx.compose.material.OutlinedTextField(
+                        modifier = Modifier.weight(1f),
+                        value = tempMaxPrice,
+                        onValueChange = { tempMaxPrice = it },
+                        singleLine = true,
+                        placeholder = { Text("Max") },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = extra.surfaceAlt,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = extra.border,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            textColor = MaterialTheme.colorScheme.onSurface,
+                        ),
+                    )
+                }
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        viewModel.applyFilters(
+                            selectedCategory = tempCategory,
+                            sortBy = tempSortBy,
+                            sortDir = tempSortDir,
+                            minRating = tempMinRating,
+                            minPrice = tempMinPrice,
+                            maxPrice = tempMaxPrice,
+                        )
+                        scope.launch {
+                            showFilters = false
+                        }
+                    },
+                ) {
+                    Text("Apply")
+                }
+            }
+        },
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { Text("Products") })
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp),
+            ) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
@@ -122,7 +262,7 @@ fun ProductListScreen(
                         .clip(MaterialTheme.shapes.medium)
                         .padding(0.dp),
                 ) {
-                    OutlinedTextField(
+                    androidx.compose.material.OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
                         value = state.search,
                         onValueChange = { viewModel.setSearch(it) },
@@ -135,11 +275,12 @@ fun ProductListScreen(
                                 tint = extra.textSecondary,
                             )
                         },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = extra.border,
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = extra.surfaceAlt,
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedContainerColor = extra.surfaceAlt,
-                            focusedContainerColor = extra.surfaceAlt,
+                            unfocusedBorderColor = extra.border,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            textColor = MaterialTheme.colorScheme.onSurface,
                         ),
                         shape = MaterialTheme.shapes.medium,
                     )
@@ -234,7 +375,7 @@ fun ProductListScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(14.dp),
-                        contentPadding = WindowInsets.navigationBars.asPaddingValues(),
+                        contentPadding = PaddingValues(bottom = 16.dp),
                     ) {
                         items(state.items) { item ->
                             val isFav = state.favoriteIds.contains(item.id)
@@ -262,128 +403,6 @@ fun ProductListScreen(
                 }
             }
         }
-
-        if (showFilters) {
-            ModalBottomSheet(
-                onDismissRequest = { showFilters = false },
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "Filters & Sort",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                        )
-                        IconButton(onClick = { showFilters = false }) {
-                            Icon(imageVector = Icons.Filled.Close, contentDescription = "Close")
-                        }
-                    }
-
-                    Text(text = "Category", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        categories.forEach { c ->
-                            SelectChip(
-                                text = c,
-                                selected = tempCategory == c,
-                                onClick = { tempCategory = if (tempCategory == c) null else c },
-                            )
-                        }
-                    }
-
-                    Text(text = "Sort by", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        sortOptions.forEach { opt ->
-                            SelectChip(
-                                text = opt.label,
-                                selected = tempSortBy == opt.sortBy && tempSortDir == opt.sortDir,
-                                onClick = {
-                                    tempSortBy = opt.sortBy
-                                    tempSortDir = opt.sortDir
-                                },
-                                fill = true,
-                            )
-                        }
-                    }
-
-                    Text(text = "Minimum rating", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        listOf(4, 3, 2, 1).forEach { r ->
-                            SelectChip(
-                                text = "${r}+",
-                                selected = tempMinRating == r,
-                                onClick = { tempMinRating = if (tempMinRating == r) null else r },
-                            )
-                        }
-                    }
-
-                    Text(text = "Price range", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OutlinedTextField(
-                            modifier = Modifier.weight(1f),
-                            value = tempMinPrice,
-                            onValueChange = { tempMinPrice = it },
-                            singleLine = true,
-                            placeholder = { Text("Min") },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = extra.border,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedContainerColor = extra.surfaceAlt,
-                                focusedContainerColor = extra.surfaceAlt,
-                            ),
-                        )
-                        OutlinedTextField(
-                            modifier = Modifier.weight(1f),
-                            value = tempMaxPrice,
-                            onValueChange = { tempMaxPrice = it },
-                            singleLine = true,
-                            placeholder = { Text("Max") },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = extra.border,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedContainerColor = extra.surfaceAlt,
-                                focusedContainerColor = extra.surfaceAlt,
-                            ),
-                        )
-                    }
-
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            viewModel.applyFilters(
-                                selectedCategory = tempCategory,
-                                sortBy = tempSortBy,
-                                sortDir = tempSortDir,
-                                minRating = tempMinRating,
-                                minPrice = tempMinPrice,
-                                maxPrice = tempMaxPrice,
-                            )
-                            showFilters = false
-                        },
-                    ) {
-                        Text("Apply")
-                    }
-                }
-            }
         }
     }
 }

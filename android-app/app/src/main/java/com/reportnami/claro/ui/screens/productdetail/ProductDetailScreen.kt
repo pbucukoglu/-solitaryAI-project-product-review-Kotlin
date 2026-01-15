@@ -36,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -112,7 +113,7 @@ fun ProductDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(headerHeight)
-                        .background(extra.surface),
+                        .background(MaterialTheme.colorScheme.surface),
                 ) {
                     val images = state.product?.imageUrls.orEmpty()
                     if (state.isLoading) {
@@ -179,7 +180,7 @@ fun ProductDetailScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(extra.surface)
+                                .background(MaterialTheme.colorScheme.surface)
                                 .padding(20.dp),
                         ) {
                             Text(text = p.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
@@ -208,7 +209,7 @@ fun ProductDetailScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(extra.surface)
+                                .background(MaterialTheme.colorScheme.surface)
                                 .padding(20.dp),
                         ) {
                             Text(text = "Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
@@ -222,7 +223,7 @@ fun ProductDetailScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(extra.surface)
+                                .background(MaterialTheme.colorScheme.surface)
                                 .padding(20.dp),
                         ) {
                             Text(
@@ -296,7 +297,7 @@ fun ProductDetailScreen(
                         .align(Alignment.TopEnd)
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(extra.surface)
+                        .background(MaterialTheme.colorScheme.surface)
                         .border(1.dp, extra.border, CircleShape)
                         .clickable(onClick = { viewModel.toggleFavorite() }),
                     contentAlignment = Alignment.Center,
@@ -314,7 +315,7 @@ fun ProductDetailScreen(
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .height(72.dp)
-                    .background(extra.surface.copy(alpha = stickyAlpha))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = stickyAlpha))
                     .border(1.dp, extra.border.copy(alpha = stickyAlpha), RoundedCornerShape(0.dp)),
             ) {
                 val title = if (state.isLoading) "" else (state.product?.name ?: "")
@@ -363,7 +364,7 @@ private fun RatingSummaryCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(extra.surface)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -397,7 +398,7 @@ private fun ReviewSummaryCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(extra.surface)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -436,6 +437,7 @@ private fun ReviewCard(
     onHelpful: () -> Unit,
 ) {
     val extra = ClaroTheme.colorsExtra
+    val isDark = isSystemInDarkTheme()
     Card(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -456,7 +458,7 @@ private fun ReviewCard(
                         modifier = Modifier
                             .size(42.dp)
                             .clip(CircleShape)
-                            .background(if (extra.isDark) Color(0xFF1F2A3A) else Color(0xFFECE7FF)),
+                            .background(if (isDark) Color(0xFF1F2A3A) else Color(0xFFECE7FF)),
                         contentAlignment = Alignment.Center,
                     ) {
                         val ch = ((reviewerName ?: "Anonymous").trim().firstOrNull() ?: 'A').uppercaseChar()
