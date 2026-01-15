@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.reportnami.claro.data.api.model.ProductDetailDto
 import com.reportnami.claro.data.api.model.ReviewDto
 import com.reportnami.claro.data.api.model.ReviewSummaryResponseDto
+import com.reportnami.claro.data.api.model.CreateReviewRequestDto
 import com.reportnami.claro.data.repository.DeviceIdRepository
 import com.reportnami.claro.data.repository.ProductRepository
 import com.reportnami.claro.data.repository.ReviewRepository
@@ -126,7 +127,7 @@ class ProductDetailViewModel @Inject constructor(
     fun toggleHelpful(reviewId: Long) {
         viewModelScope.launch {
             runCatching {
-                val deviceId = deviceIdRepository.getDeviceId()
+                val deviceId = deviceIdRepository.getOrCreate()
                 reviewRepository.toggleHelpful(reviewId, deviceId)
             }.onSuccess {
                 // Refresh reviews to update helpful counts
@@ -139,36 +140,19 @@ class ProductDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSubmittingReview = true)
             runCatching {
+                val deviceId = deviceIdRepository.getOrCreate()
                 reviewRepository.createReview(
-                    productId = productId,
-                    reviewerName = reviewerName,
-                    rating = rating,
-                    comment = comment
+                    body = CreateReviewRequestDto(
+                        productId = productId,
+                        comment = comment,
+                        rating = rating,
+                        reviewerName = reviewerName,
+                        deviceId = deviceId
+                    )
                 )
             }.onSuccess {
                 // Refresh data
                 load(productId)
-            }.onFailure { e ->
-                // Handle error - could add error state
-            }.also {
-                _uiState.value = _uiState.value.copy(isSubmittingReview = false)
-            }
-        }
-    }
-
-    fun updateReview(reviewId: Long, reviewerName: String, rating: Int, comment: String) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isSubmittingReview = true)
-            runCatching {
-                reviewRepository.updateReview(
-                    reviewId = reviewId,
-                    reviewerName = reviewerName,
-                    rating = rating,
-                    comment = comment
-                )
-            }.onSuccess {
-                // Refresh data
-                currentProductId?.let { load(it) }
             }.onFailure { e ->
                 // Handle error - could add error state
             }.also {

@@ -20,9 +20,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -36,13 +36,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.reportnami.claro.ui.theme.ClaroTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 data class ReviewEdit(
     val id: Long? = null,
     val reviewerName: String = "",
@@ -51,6 +54,7 @@ data class ReviewEdit(
 )
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun ReviewEditModal(
     visible: Boolean,
     initialReview: ReviewEdit = ReviewEdit(),
@@ -156,11 +160,14 @@ fun ReviewEditModal(
                                     .clickable { review = review.copy(rating = starValue) },
                                 contentAlignment = Alignment.Center
                             ) {
+                                val starText = if (index < review.rating) "★" else "☆"
+                                val starColor = if (index < review.rating) Color(0xFFFFB800) else MaterialTheme.colorScheme.surfaceVariant
+                                
                                 Text(
-                                    text = if (index < review.rating) "★" : "☆",
+                                    text = starText,
                                     fontSize = 28.sp,
-                                    color = if (index < review.rating) Color(0xFFFFB800) else MaterialTheme.colorScheme.surfaceVariant,
-                                    modifier = androidx.compose.ui.draw.scale(scale)
+                                    color = starColor,
+                                    modifier = Modifier.scale(scale)
                                 )
                             }
                         }

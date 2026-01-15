@@ -1,5 +1,6 @@
 package com.reportnami.claro.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.reportnami.claro.ui.theme.ClaroTheme
+
+@OptIn(ExperimentalFoundationApi::class)
 
 @Composable
 fun ImageCarousel(
@@ -96,7 +99,7 @@ fun ImageCarousel(
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable { onImageClick?.invoke(page) },
-                contentScale = ContentScale.Cover
+                contentScale = ContentScale.Crop
             )
         }
 

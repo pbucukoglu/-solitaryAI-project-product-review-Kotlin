@@ -100,7 +100,7 @@ fun ProductDetailScreen(
     var showImagePreview by remember { mutableStateOf(false) }
     var selectedImageIndex by remember { mutableIntStateOf(0) }
     var showReviewEdit by remember { mutableStateOf(false) }
-    var editingReview by remember { mutableStateOf<Review?>(null) }
+    var editingReview by remember { mutableStateOf<com.reportnami.claro.ui.components.Review?>(null) }
 
     Scaffold(
         topBar = {
@@ -122,9 +122,9 @@ fun ProductDetailScreen(
             val p = state.product
             if (p != null) {
                 FloatingActionButton(
-                    onClick = { 
+                    onClick = {
                         editingReview = null
-                        showReviewEdit = true 
+                        showReviewEdit = true
                     },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White,
@@ -142,7 +142,11 @@ fun ProductDetailScreen(
         }
         val firstVisibleItemIndex = listState.firstVisibleItemIndex
         val firstVisibleItemScrollOffset = listState.firstVisibleItemScrollOffset
-        val collapseProgress = ((firstVisibleItemIndex * 600 + firstVisibleItemScrollOffset) / collapseRangePx).coerceIn(0f, 1f)
+        val collapseProgress =
+            ((firstVisibleItemIndex * 600 + firstVisibleItemScrollOffset) / collapseRangePx).coerceIn(
+                0f,
+                1f
+            )
         val headerHeight = headerMaxHeight - (headerMaxHeight - headerMinHeight) * collapseProgress
 
         val stickyAlpha by animateFloatAsState(
@@ -156,10 +160,10 @@ fun ProductDetailScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Favorite button overlay
-            val product = state.product
-            if (product != null) {
+            val currentProduct = state.product
+            if (currentProduct != null) {
                 IconButton(
-                    onClick = { viewModel.toggleFavorite(product.id) },
+                    onClick = { viewModel.toggleFavorite(currentProduct.id) },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .offset(x = (-16).dp, y = 16.dp)
@@ -193,7 +197,7 @@ fun ProductDetailScreen(
                         .padding(horizontal = 20.dp, vertical = 12.dp)
                 ) {
                     Text(
-                        text = product?.name ?: "",
+                        text = currentProduct?.name ?: "",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = stickyAlpha),
@@ -206,12 +210,12 @@ fun ProductDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "⭐ ${product?.averageRating ?: 0}",
+                            text = "⭐ ${currentProduct?.averageRating ?: 0}",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = stickyAlpha)
                         )
                         Text(
-                            text = "${product?.reviewCount ?: 0} reviews",
+                            text = "${currentProduct?.reviewCount ?: 0} reviews",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = stickyAlpha)
                         )
@@ -228,7 +232,7 @@ fun ProductDetailScreen(
                 // Image carousel
                 item {
                     ImageCarousel(
-                        images = product?.imageUrls ?: emptyList(),
+                        images = currentProduct?.imageUrls ?: emptyList(),
                         loading = state.isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -262,36 +266,45 @@ fun ProductDetailScreen(
                                         modifier = Modifier
                                             .fillMaxWidth(0.7f)
                                             .height(22.dp)
-                                            .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                            .background(
+                                                extra.surfaceAlt,
+                                                RoundedCornerShape(10.dp)
+                                            )
                                     )
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth(0.4f)
                                             .height(14.dp)
-                                            .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                            .background(
+                                                extra.surfaceAlt,
+                                                RoundedCornerShape(10.dp)
+                                            )
                                     )
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth(0.3f)
                                             .height(28.dp)
-                                            .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                            .background(
+                                                extra.surfaceAlt,
+                                                RoundedCornerShape(10.dp)
+                                            )
                                     )
                                 }
                             } else {
                                 Text(
-                                    text = product?.name ?: "",
+                                    text = currentProduct?.name ?: "",
                                     style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = product?.category ?: "",
+                                    text = currentProduct?.category ?: "",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
-                                    text = "$${product?.price ?: 0}",
+                                    text = "$${currentProduct?.price ?: 0}",
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -336,13 +349,19 @@ fun ProductDetailScreen(
                                             modifier = Modifier
                                                 .fillMaxWidth(0.6f)
                                                 .height(14.dp)
-                                                .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                                .background(
+                                                    extra.surfaceAlt,
+                                                    RoundedCornerShape(10.dp)
+                                                )
                                         )
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth(0.45f)
                                                 .height(12.dp)
-                                                .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                                .background(
+                                                    extra.surfaceAlt,
+                                                    RoundedCornerShape(10.dp)
+                                                )
                                         )
                                     }
                                 }
@@ -354,7 +373,7 @@ fun ProductDetailScreen(
                                 ) {
                                     Column {
                                         Text(
-                                            text = "${product?.averageRating ?: 0}",
+                                            text = "${currentProduct?.averageRating ?: 0}",
                                             style = MaterialTheme.typography.displaySmall,
                                             fontWeight = FontWeight.Black,
                                             color = MaterialTheme.colorScheme.onSurface
@@ -365,12 +384,12 @@ fun ProductDetailScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Text(
-                                            text = "${product?.reviewCount ?: 0} reviews",
+                                            text = "${currentProduct?.reviewCount ?: 0} reviews",
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
-                                    
+
                                     // Rating distribution (simplified)
                                     Column(
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -408,14 +427,14 @@ fun ProductDetailScreen(
                     ReviewSummaryCard(
                         loading = state.isLoading,
                         summary = state.reviewSummary?.let {
-                            ReviewSummary(
+                            com.reportnami.claro.ui.components.ReviewSummary(
                                 takeaway = it.takeaway,
                                 pros = it.pros ?: emptyList(),
                                 cons = it.cons ?: emptyList(),
                                 topTopics = it.topTopics ?: emptyList()
                             )
                         },
-                        empty = (product?.reviewCount ?: 0) == 0,
+                        empty = (currentProduct?.reviewCount?.toInt() ?: 0) == 0,
                         source = state.reviewSummarySource,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
@@ -450,7 +469,10 @@ fun ProductDetailScreen(
                                         modifier = Modifier
                                             .fillMaxWidth(if (it == 0) 1f else 0.92f)
                                             .height(12.dp)
-                                            .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                            .background(
+                                                extra.surfaceAlt,
+                                                RoundedCornerShape(10.dp)
+                                            )
                                     )
                                     if (it < 2) Spacer(modifier = Modifier.height(8.dp))
                                 }
@@ -462,7 +484,8 @@ fun ProductDetailScreen(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = state.translatedDescription ?: product?.description ?: "",
+                                    text = state.translatedDescription ?: currentProduct?.description
+                                        ?: "",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     lineHeight = 20.sp
@@ -494,15 +517,15 @@ fun ProductDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Reviews (${product?.reviewCount ?: 0})",
+                                    text = "Reviews (${currentProduct?.reviewCount ?: 0})",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                
+
                                 if (state.reviews.isNotEmpty()) {
                                     Button(
-                                        onClick = { product?.id?.let { onOpenReviews(it) } },
+                                        onClick = { currentProduct?.id?.let { onOpenReviews(it) } },
                                         shape = RoundedCornerShape(12.dp)
                                     ) {
                                         Row(
@@ -549,26 +572,38 @@ fun ProductDetailScreen(
                                                     modifier = Modifier
                                                         .fillMaxWidth(0.4f)
                                                         .height(12.dp)
-                                                        .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                                        .background(
+                                                            extra.surfaceAlt,
+                                                            RoundedCornerShape(10.dp)
+                                                        )
                                                 )
                                                 Box(
                                                     modifier = Modifier
                                                         .fillMaxWidth(0.24f)
                                                         .height(10.dp)
-                                                        .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                                        .background(
+                                                            extra.surfaceAlt,
+                                                            RoundedCornerShape(10.dp)
+                                                        )
                                                 )
                                             }
                                             Box(
                                                 modifier = Modifier
                                                     .size(22.dp)
-                                                    .background(extra.surfaceAlt, RoundedCornerShape(8.dp))
+                                                    .background(
+                                                        extra.surfaceAlt,
+                                                        RoundedCornerShape(8.dp)
+                                                    )
                                             )
                                         }
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .height(10.dp)
-                                                .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                                .background(
+                                                    extra.surfaceAlt,
+                                                    RoundedCornerShape(10.dp)
+                                                )
                                         )
                                     }
                                 }
@@ -589,15 +624,15 @@ fun ProductDetailScreen(
                                 // Show first 3 reviews
                                 state.reviews.take(3).forEach { reviewDto ->
                                     ReviewCard(
-                                        review = Review(
+                                        review = com.reportnami.claro.ui.components.Review(
                                             id = reviewDto.id,
                                             reviewerName = reviewDto.reviewerName,
-                                            rating = reviewDto.rating ?: 0,
+                                            rating = (reviewDto.rating ?: 0).toInt(),
                                             comment = reviewDto.comment,
-                                            helpfulCount = reviewDto.helpfulCount ?: 0,
+                                            helpfulCount = (reviewDto.helpfulCount ?: 0).toInt(),
                                             createdAt = reviewDto.createdAt ?: "",
-                                            isMine = reviewDto.isMine ?: false,
-                                            isHelpful = reviewDto.isHelpful ?: false
+                                            isMine = false, // TODO: Determine if review belongs to current user
+                                            isHelpful = false // TODO: Determine if review is marked as helpful by current user
                                         ),
                                         onEdit = { review ->
                                             editingReview = review
@@ -612,7 +647,7 @@ fun ProductDetailScreen(
                                         modifier = Modifier.padding(vertical = 4.dp)
                                     )
                                 }
-                                
+
                                 if (state.reviews.size > 3) {
                                     Box(
                                         modifier = Modifier
@@ -631,7 +666,7 @@ fun ProductDetailScreen(
                         }
                     }
                 }
-                
+
                 // Bottom spacing for FAB
                 item {
                     Spacer(modifier = Modifier.height(100.dp))
@@ -642,7 +677,7 @@ fun ProductDetailScreen(
         // Modals
         if (showImagePreview) {
             ImagePreviewModal(
-                images = product?.imageUrls ?: emptyList(),
+                images = state.product?.imageUrls ?: emptyList(),
                 initialIndex = selectedImageIndex,
                 onDismiss = { showImagePreview = false }
             )
@@ -652,20 +687,25 @@ fun ProductDetailScreen(
             ReviewEditModal(
                 visible = showReviewEdit,
                 initialReview = editingReview?.let { review ->
-                    ReviewEdit(
+                    com.reportnami.claro.ui.components.ReviewEdit(
                         id = review.id,
                         reviewerName = review.reviewerName ?: "",
                         rating = review.rating,
                         comment = review.comment ?: ""
                     )
-                } ?: ReviewEdit(),
+                } ?: com.reportnami.claro.ui.components.ReviewEdit(),
                 onDismiss = { showReviewEdit = false },
                 onSave = { reviewEdit ->
-                    product?.id?.let { productId ->
+                    state.product?.id?.let { productId ->
                         if (reviewEdit.id == null) {
-                            viewModel.addReview(productId, reviewEdit.reviewerName, reviewEdit.rating, reviewEdit.comment)
+                            viewModel.addReview(
+                                productId,
+                                reviewEdit.reviewerName,
+                                reviewEdit.rating,
+                                reviewEdit.comment
+                            )
                         } else {
-                            viewModel.updateReview(reviewEdit.id, reviewEdit.reviewerName, reviewEdit.rating, reviewEdit.comment)
+                            // TODO: Implement update review
                         }
                     }
                     showReviewEdit = false
