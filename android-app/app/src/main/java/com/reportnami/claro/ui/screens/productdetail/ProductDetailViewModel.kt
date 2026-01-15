@@ -30,16 +30,17 @@ class ProductDetailViewModel @Inject constructor(
         val isLoading: Boolean = false,
         val error: String? = null,
         val product: ProductDetailDto? = null,
-        val summary: ReviewSummaryResponseDto? = null,
+        val reviewSummary: ReviewSummaryResponseDto? = null,
+        val reviewSummarySource: String? = null,
         val isFavorite: Boolean = false,
         val reviews: List<ReviewDto> = emptyList(),
         val reviewsError: String? = null,
         val reviewsPage: Int = 0,
         val reviewsHasMore: Boolean = true,
-        val reviewsLoading: Boolean = false,
-        val reviewsLoadingMore: Boolean = false,
+        val isLoadingReviews: Boolean = false,
         val translatedDescription: String? = null,
         val translatedCommentsById: Map<Long, String> = emptyMap(),
+        val isSubmittingReview: Boolean = false,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -85,14 +86,14 @@ class ProductDetailViewModel @Inject constructor(
                     isLoading = false,
                     error = null,
                     product = bundle.product,
-                    summary = bundle.summary,
+                    reviewSummary = bundle.summary,
+                    reviewSummarySource = bundle.summary?.source,
                     isFavorite = bundle.isFavorite,
                     reviews = bundle.reviews,
                     reviewsPage = bundle.reviewsPage,
                     reviewsHasMore = bundle.reviewsHasMore,
                     reviewsError = null,
-                    reviewsLoading = false,
-                    reviewsLoadingMore = false,
+                    isLoadingReviews = false,
                 )
 
                 translateIfNeeded(
@@ -112,69 +113,71 @@ class ProductDetailViewModel @Inject constructor(
         translateIfNeeded(lang = lang, description = current.product?.description, reviews = current.reviews)
     }
 
-    fun toggleFavorite() {
-        val pid = currentProductId ?: return
+    fun toggleFavorite(productId: Long) {
         viewModelScope.launch {
             runCatching {
-                wishlistRepository.toggle(pid)
+                wishlistRepository.toggle(productId)
             }.onSuccess { next ->
-                _uiState.value = _uiState.value.copy(isFavorite = next.contains(pid))
-            }
-        }
-    }
-
-    fun loadMoreReviews() {
-        val pid = currentProductId ?: return
-        val current = _uiState.value
-        if (current.reviewsLoading || current.reviewsLoadingMore || !current.reviewsHasMore) return
-
-        _uiState.value = current.copy(reviewsLoadingMore = true, reviewsError = null)
-        val nextPage = current.reviewsPage + 1
-
-        viewModelScope.launch {
-            runCatching {
-                reviewRepository.getReviewsByProductId(
-                    productId = pid,
-                    page = nextPage,
-                    size = 10,
-                    sortBy = "helpfulCount",
-                    sortDir = "DESC",
-                    minRating = null,
-                )
-            }.onSuccess { page ->
-                val merged = current.reviews + page.content
-                val deduped = merged.distinctBy { it.id }
-
-                _uiState.value = _uiState.value.copy(
-                    reviews = deduped,
-                    reviewsPage = page.number ?: nextPage,
-                    reviewsHasMore = (page.last == false) && page.content.isNotEmpty(),
-                    reviewsLoadingMore = false,
-                    reviewsError = null,
-                )
-
-                translateIfNeeded(lang = currentLang, description = _uiState.value.product?.description, reviews = deduped)
-            }.onFailure { e ->
-                _uiState.value = _uiState.value.copy(reviewsLoadingMore = false, reviewsError = e.message ?: "Failed to load reviews")
+                _uiState.value = _uiState.value.copy(isFavorite = next.contains(productId))
             }
         }
     }
 
     fun toggleHelpful(reviewId: Long) {
         viewModelScope.launch {
-            val deviceId = deviceIdRepository.getOrCreate()
             runCatching {
-                reviewRepository.toggleHelpful(reviewId = reviewId, deviceId = deviceId)
-            }.onSuccess { res ->
-                val next = _uiState.value.reviews.map { r ->
-                    if (r.id == res.reviewId) r.copy(helpfulCount = res.helpfulCount) else r
-                }
-                _uiState.value = _uiState.value.copy(reviews = next)
+                val deviceId = deviceIdRepository.getDeviceId()
+                reviewRepository.toggleHelpful(reviewId, deviceId)
+            }.onSuccess {
+                // Refresh reviews to update helpful counts
+                currentProductId?.let { load(it) }
             }
         }
     }
 
-    private fun translateIfNeeded(lang: String, description: String?, reviews: List<ReviewDto>) {
+    fun addReview(productId: Long, reviewerName: String, rating: Int, comment: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSubmittingReview = true)
+            runCatching {
+                reviewRepository.createReview(
+                    productId = productId,
+                    reviewerName = reviewerName,
+                    rating = rating,
+                    comment = comment
+                )
+            }.onSuccess {
+                // Refresh data
+                load(productId)
+            }.onFailure { e ->
+                // Handle error - could add error state
+            }.also {
+                _uiState.value = _uiState.value.copy(isSubmittingReview = false)
+            }
+        }
+    }
+
+    fun updateReview(reviewId: Long, reviewerName: String, rating: Int, comment: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSubmittingReview = true)
+            runCatching {
+                reviewRepository.updateReview(
+                    reviewId = reviewId,
+                    reviewerName = reviewerName,
+                    rating = rating,
+                    comment = comment
+                )
+            }.onSuccess {
+                // Refresh data
+                currentProductId?.let { load(it) }
+            }.onFailure { e ->
+                // Handle error - could add error state
+            }.also {
+                _uiState.value = _uiState.value.copy(isSubmittingReview = false)
+            }
+        }
+    }
+
+        private fun translateIfNeeded(lang: String, description: String?, reviews: List<ReviewDto>) {
         val target = lang.trim().lowercase()
         if (target.isBlank() || target == "en") {
             _uiState.value = _uiState.value.copy(
@@ -218,7 +221,7 @@ class ProductDetailViewModel @Inject constructor(
 
     private data class LoadedBundle(
         val product: ProductDetailDto,
-        val summary: ReviewSummaryResponseDto,
+        val summary: ReviewSummaryResponseDto?,
         val reviews: List<ReviewDto>,
         val reviewsPage: Int,
         val reviewsHasMore: Boolean,

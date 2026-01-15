@@ -1,6 +1,8 @@
 package com.reportnami.claro.ui.screens.productdetail
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,46 +15,69 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Card
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.reportnami.claro.ui.components.ImageCarousel
+import com.reportnami.claro.ui.components.ImagePreviewModal
+import com.reportnami.claro.ui.components.ReviewCard
+import com.reportnami.claro.ui.components.ReviewEditModal
+import com.reportnami.claro.ui.components.ReviewSummaryCard
 import com.reportnami.claro.ui.theme.ClaroTheme
+import com.reportnami.claro.data.api.model.ProductDto
+import com.reportnami.claro.data.api.model.ReviewDto
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ProductDetailScreen(
     productId: Long?,
@@ -64,18 +89,43 @@ fun ProductDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val extra = ClaroTheme.colorsExtra
+    val isDark = isSystemInDarkTheme()
 
     LaunchedEffect(productId) {
         val id = productId ?: return@LaunchedEffect
         viewModel.load(id)
     }
 
+    // Modal states
+    var showImagePreview by remember { mutableStateOf(false) }
+    var selectedImageIndex by remember { mutableIntStateOf(0) }
+    var showReviewEdit by remember { mutableStateOf(false) }
+    var editingReview by remember { mutableStateOf<Review?>(null) }
+
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             val p = state.product
             if (p != null) {
                 FloatingActionButton(
-                    onClick = { onAddReview(p.id) },
+                    onClick = { 
+                        editingReview = null
+                        showReviewEdit = true 
+                    },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White,
                 ) {
@@ -84,14 +134,15 @@ fun ProductDetailScreen(
             }
         },
     ) { padding ->
-        val scrollState = rememberScrollState()
-
+        val listState = rememberLazyListState()
         val headerMaxHeight = 320.dp
         val headerMinHeight = 92.dp
-        val collapseRangePx = with(androidx.compose.ui.platform.LocalDensity.current) {
+        val collapseRangePx = with(LocalDensity.current) {
             (headerMaxHeight - headerMinHeight).toPx()
         }
-        val collapseProgress = (scrollState.value / collapseRangePx).coerceIn(0f, 1f)
+        val firstVisibleItemIndex = listState.firstVisibleItemIndex
+        val firstVisibleItemScrollOffset = listState.firstVisibleItemScrollOffset
+        val collapseProgress = ((firstVisibleItemIndex * 600 + firstVisibleItemScrollOffset) / collapseRangePx).coerceIn(0f, 1f)
         val headerHeight = headerMaxHeight - (headerMaxHeight - headerMinHeight) * collapseProgress
 
         val stickyAlpha by animateFloatAsState(
@@ -102,397 +153,525 @@ fun ProductDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            Column(
+            // Favorite button overlay
+            val product = state.product
+            if (product != null) {
+                IconButton(
+                    onClick = { viewModel.toggleFavorite(product.id) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = (-16).dp, y = 16.dp)
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(1.dp, extra.border, CircleShape)
+                ) {
+                    Icon(
+                        imageVector = if (state.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = if (state.isFavorite) "Remove from favorites" else "Add to favorites",
+                        tint = if (state.isFavorite) Color(0xFFE91E63) else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+
+            // Sticky header
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState),
+                    .fillMaxWidth()
+                    .height(headerHeight)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = stickyAlpha))
+                    .border(1.dp, extra.border.copy(alpha = stickyAlpha), RoundedCornerShape(0.dp))
+                    .statusBarsPadding(),
+                contentAlignment = Alignment.CenterStart
             ) {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(headerHeight)
-                        .background(MaterialTheme.colorScheme.surface),
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
                 ) {
-                    val images = state.product?.imageUrls.orEmpty()
-                    if (state.isLoading) {
-                        Box(modifier = Modifier.fillMaxSize().background(extra.surfaceAlt))
-                    } else {
-                        val first = images.firstOrNull()
-                        if (first != null) {
-                            AsyncImage(
-                                model = first,
-                                contentDescription = "Product image",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(0.dp)),
-                            )
-                        } else {
-                            Box(modifier = Modifier.fillMaxSize().background(extra.surfaceAlt))
-                        }
-                    }
-
+                    Text(
+                        text = product?.name ?: "",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = stickyAlpha),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
                     Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "⭐ ${product?.averageRating ?: 0}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = stickyAlpha)
+                        )
+                        Text(
+                            text = "${product?.reviewCount ?: 0} reviews",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = stickyAlpha)
+                        )
+                    }
+                }
+            }
+
+            // Main content
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(top = headerMinHeight)
+            ) {
+                // Image carousel
+                item {
+                    ImageCarousel(
+                        images = product?.imageUrls ?: emptyList(),
+                        loading = state.isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        IconButton(onClick = onBack) {
-                            Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                            .height(headerMaxHeight),
+                        onImageClick = { index ->
+                            selectedImageIndex = index
+                            showImagePreview = true
                         }
-                        IconButton(onClick = onOpenSettings) {
-                            Icon(imageVector = Icons.Filled.Settings, contentDescription = "Settings", tint = Color.White)
+                    )
+                }
+
+                // Product info
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (state.isLoading) {
+                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.7f)
+                                            .height(22.dp)
+                                            .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.4f)
+                                            .height(14.dp)
+                                            .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.3f)
+                                            .height(28.dp)
+                                            .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = product?.name ?: "",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = product?.category ?: "",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "$${product?.price ?: 0}",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }
 
-                when {
-                    productId == null -> {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(text = "Product not found", color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-
-                    state.isLoading -> {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-
-                    state.error != null -> {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(text = state.error ?: "Error", color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-
-                    else -> {
-                        val p = state.product
-                        if (p == null) return@Column
-
+                // Rating summary
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surface)
                                 .padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Text(text = p.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = (p.category ?: "").uppercase(),
-                                color = extra.textSecondary,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "$${(p.price?.toDoubleOrNull() ?: 0.0)}",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Black,
-                            )
-                        }
-
-                        RatingSummaryCard(
-                            averageRating = p.averageRating ?: 0.0,
-                            reviewCount = p.reviewCount ?: 0,
-                        )
-
-                        ReviewSummaryCard(summary = state.summary)
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surface)
-                                .padding(20.dp),
-                        ) {
-                            Text(text = "Description", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = state.translatedDescription ?: (p.description ?: ""),
-                                color = extra.textSecondary,
-                            )
-                        }
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surface)
-                                .padding(20.dp),
-                        ) {
-                            Text(
-                                text = "Reviews (${p.reviewCount ?: state.reviews.size})",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            when {
-                                state.reviewsError != null && state.reviews.isEmpty() -> {
-                                    Text(text = state.reviewsError ?: "Failed to load reviews", color = MaterialTheme.colorScheme.error)
-                                    Spacer(modifier = Modifier.height(10.dp))
-                                    Button(onClick = { viewModel.load(p.id) }) { Text("Retry") }
+                            if (state.isLoading) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(64.dp)
+                                            .background(extra.surfaceAlt, RoundedCornerShape(12.dp))
+                                    )
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth(0.6f)
+                                                .height(14.dp)
+                                                .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth(0.45f)
+                                                .height(12.dp)
+                                                .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                        )
+                                    }
                                 }
-
-                                state.reviews.isEmpty() -> {
-                                    Text(text = "Be the first to review", color = extra.textSecondary)
-                                }
-
-                                else -> {
-                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        state.reviews.forEach { r ->
-                                            ReviewCard(
-                                                reviewerName = r.reviewerName,
-                                                rating = r.rating,
-                                                comment = state.translatedCommentsById[r.id] ?: r.comment,
-                                                helpfulCount = r.helpfulCount ?: 0,
-                                                onHelpful = { viewModel.toggleHelpful(r.id) },
-                                            )
-                                        }
-
-                                        if (state.reviewsHasMore) {
-                                            Button(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                enabled = !state.reviewsLoadingMore,
-                                                onClick = { viewModel.loadMoreReviews() },
-                                            ) {
-                                                Text(if (state.reviewsLoadingMore) "Loading..." else "Load more")
-                                            }
-                                        }
-
-                                        Button(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            onClick = { onOpenReviews(p.id) },
-                                        ) {
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "${product?.averageRating ?: 0}",
+                                            style = MaterialTheme.typography.displaySmall,
+                                            fontWeight = FontWeight.Black,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Average Rating",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = "${product?.reviewCount ?: 0} reviews",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    
+                                    // Rating distribution (simplified)
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        listOf(5, 4, 3, 2, 1).forEach { stars ->
                                             Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                                             ) {
-                                                Text("See all reviews")
-                                                Icon(imageVector = Icons.Filled.KeyboardArrowRight, contentDescription = "All reviews")
+                                                Text(
+                                                    text = "$stars★",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.width(20.dp)
+                                                )
+                                                LinearProgressIndicator(
+                                                    progress = (stars / 5f).coerceIn(0f, 1f),
+                                                    modifier = Modifier
+                                                        .width(100.dp)
+                                                        .height(6.dp),
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    trackColor = extra.surfaceAlt
+                                                )
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(120.dp))
                     }
                 }
-            }
 
-            val p = state.product
-            if (p != null) {
-                Box(
-                    modifier = Modifier
-                        .padding(top = 56.dp, end = 16.dp)
-                        .align(Alignment.TopEnd)
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, extra.border, CircleShape)
-                        .clickable(onClick = { viewModel.toggleFavorite() }),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = if (state.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = if (state.isFavorite) extra.danger else extra.textSecondary,
+                // Review summary card
+                item {
+                    ReviewSummaryCard(
+                        loading = state.isLoading,
+                        summary = state.reviewSummary?.let {
+                            ReviewSummary(
+                                takeaway = it.takeaway,
+                                pros = it.pros ?: emptyList(),
+                                cons = it.cons ?: emptyList(),
+                                topTopics = it.topTopics ?: emptyList()
+                            )
+                        },
+                        empty = (product?.reviewCount ?: 0) == 0,
+                        source = state.reviewSummarySource,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }
-            }
 
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .height(72.dp)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = stickyAlpha))
-                    .border(1.dp, extra.border.copy(alpha = stickyAlpha), RoundedCornerShape(0.dp)),
-            ) {
-                val title = if (state.isLoading) "" else (state.product?.name ?: "")
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 14.dp),
-                ) {
-                    Text(
-                        text = title,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        fontWeight = FontWeight.Black,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "⭐ ${String.format("%.1f", (state.product?.averageRating ?: 0.0))}",
-                            color = extra.textSecondary,
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "${state.product?.reviewCount ?: 0} reviews",
-                            color = extra.textSecondary,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RatingSummaryCard(
-    averageRating: Double,
-    reviewCount: Long,
-) {
-    val extra = ClaroTheme.colorsExtra
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 12.dp),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(16.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = String.format("%.1f", averageRating),
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Black,
-                )
-                Spacer(modifier = Modifier.width(14.dp))
-                Column {
-                    Text(text = "Average rating", color = extra.textSecondary, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "$reviewCount total reviews", color = extra.textSecondary, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ReviewSummaryCard(
-    summary: com.reportnami.claro.data.api.model.ReviewSummaryResponseDto?,
-) {
-    val extra = ClaroTheme.colorsExtra
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 12.dp),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(text = "Smart Review Insights", fontWeight = FontWeight.Black)
-            if (summary == null) {
-                Text(text = "No summary", color = extra.textSecondary)
-                return@Column
-            }
-
-            if (!summary.takeaway.isNullOrBlank()) {
-                Text(text = summary.takeaway!!, color = extra.textSecondary)
-            }
-            BulletSection(title = "Pros", items = summary.pros)
-            BulletSection(title = "Cons", items = summary.cons)
-            BulletSection(title = "Top Topics", items = summary.topTopics)
-        }
-    }
-}
-
-@Composable
-private fun BulletSection(title: String, items: List<String>?) {
-    val extra = ClaroTheme.colorsExtra
-    if (items.isNullOrEmpty()) return
-    Text(text = title, fontWeight = FontWeight.Black)
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        items.forEach { Text(text = "• $it", color = extra.textSecondary) }
-    }
-}
-
-@Composable
-private fun ReviewCard(
-    reviewerName: String?,
-    rating: Int?,
-    comment: String?,
-    helpfulCount: Long,
-    onHelpful: () -> Unit,
-) {
-    val extra = ClaroTheme.colorsExtra
-    val isDark = isSystemInDarkTheme()
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(extra.surfaceAlt)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
+                // Description
+                item {
+                    Card(
                         modifier = Modifier
-                            .size(42.dp)
-                            .clip(CircleShape)
-                            .background(if (isDark) Color(0xFF1F2A3A) else Color(0xFFECE7FF)),
-                        contentAlignment = Alignment.Center,
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        val ch = ((reviewerName ?: "Anonymous").trim().firstOrNull() ?: 'A').uppercaseChar()
-                        Text(text = ch.toString(), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (state.isLoading) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.3f)
+                                        .height(16.dp)
+                                        .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                repeat(3) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(if (it == 0) 1f else 0.92f)
+                                            .height(12.dp)
+                                            .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                    )
+                                    if (it < 2) Spacer(modifier = Modifier.height(8.dp))
+                                }
+                            } else {
+                                Text(
+                                    text = "Description",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = state.translatedDescription ?: product?.description ?: "",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 20.sp
+                                )
+                            }
+                        }
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(text = reviewerName ?: "Anonymous", fontWeight = FontWeight.Black)
+                }
+
+                // Reviews section
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Reviews (${product?.reviewCount ?: 0})",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                
+                                if (state.reviews.isNotEmpty()) {
+                                    Button(
+                                        onClick = { product?.id?.let { onOpenReviews(it) } },
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text(
+                                                text = "See All",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Icon(
+                                                imageVector = Icons.Default.KeyboardArrowRight,
+                                                contentDescription = "See all reviews",
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (state.isLoadingReviews) {
+                                repeat(3) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(42.dp)
+                                                    .background(extra.surfaceAlt, CircleShape)
+                                            )
+                                            Column(
+                                                modifier = Modifier.weight(1f),
+                                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth(0.4f)
+                                                        .height(12.dp)
+                                                        .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                                )
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth(0.24f)
+                                                        .height(10.dp)
+                                                        .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                                )
+                                            }
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(22.dp)
+                                                    .background(extra.surfaceAlt, RoundedCornerShape(8.dp))
+                                            )
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(10.dp)
+                                                .background(extra.surfaceAlt, RoundedCornerShape(10.dp))
+                                        )
+                                    }
+                                }
+                            } else if (state.reviews.isEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 20.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Be the first to review this product!",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            } else {
+                                // Show first 3 reviews
+                                state.reviews.take(3).forEach { reviewDto ->
+                                    ReviewCard(
+                                        review = Review(
+                                            id = reviewDto.id,
+                                            reviewerName = reviewDto.reviewerName,
+                                            rating = reviewDto.rating ?: 0,
+                                            comment = reviewDto.comment,
+                                            helpfulCount = reviewDto.helpfulCount ?: 0,
+                                            createdAt = reviewDto.createdAt ?: "",
+                                            isMine = reviewDto.isMine ?: false,
+                                            isHelpful = reviewDto.isHelpful ?: false
+                                        ),
+                                        onEdit = { review ->
+                                            editingReview = review
+                                            showReviewEdit = true
+                                        },
+                                        onDelete = { review ->
+                                            // TODO: Implement delete
+                                        },
+                                        onToggleHelpful = { review ->
+                                            viewModel.toggleHelpful(review.id)
+                                        },
+                                        modifier = Modifier.padding(vertical = 4.dp)
+                                    )
+                                }
+                                
+                                if (state.reviews.size > 3) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "And ${state.reviews.size - 3} more reviews...",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                ) {
-                    Text(text = "⭐ ${rating ?: "-"}/5", color = Color.White, fontWeight = FontWeight.Black)
+                
+                // Bottom spacing for FAB
+                item {
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
             }
+        }
 
-            if (!comment.isNullOrBlank()) {
-                Text(text = comment, color = extra.textSecondary)
-            }
+        // Modals
+        if (showImagePreview) {
+            ImagePreviewModal(
+                images = product?.imageUrls ?: emptyList(),
+                initialIndex = selectedImageIndex,
+                onDismiss = { showImagePreview = false }
+            )
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Button(onClick = onHelpful) {
-                    Text(text = "Helpful")
-                }
-                Text(text = helpfulCount.toString(), color = extra.textSecondary, fontWeight = FontWeight.Bold)
-            }
+        if (showReviewEdit) {
+            ReviewEditModal(
+                visible = showReviewEdit,
+                initialReview = editingReview?.let { review ->
+                    ReviewEdit(
+                        id = review.id,
+                        reviewerName = review.reviewerName ?: "",
+                        rating = review.rating,
+                        comment = review.comment ?: ""
+                    )
+                } ?: ReviewEdit(),
+                onDismiss = { showReviewEdit = false },
+                onSave = { reviewEdit ->
+                    product?.id?.let { productId ->
+                        if (reviewEdit.id == null) {
+                            viewModel.addReview(productId, reviewEdit.reviewerName, reviewEdit.rating, reviewEdit.comment)
+                        } else {
+                            viewModel.updateReview(reviewEdit.id, reviewEdit.reviewerName, reviewEdit.rating, reviewEdit.comment)
+                        }
+                    }
+                    showReviewEdit = false
+                },
+                loading = state.isSubmittingReview
+            )
         }
     }
 }
