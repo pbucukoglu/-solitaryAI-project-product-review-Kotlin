@@ -5,6 +5,7 @@ import com.reportnami.claro.data.api.model.PageResponse
 import com.reportnami.claro.data.api.model.ProductDetailDto
 import com.reportnami.claro.data.api.model.ProductDto
 import com.reportnami.claro.data.api.model.ReviewSummaryResponseDto
+import com.reportnami.claro.data.api.model.TranslateRequestDto
 import javax.inject.Inject
 
 class ProductRepository @Inject constructor(
@@ -40,5 +41,15 @@ class ProductRepository @Inject constructor(
 
     suspend fun getReviewSummary(productId: Long, limit: Int, lang: String): ReviewSummaryResponseDto {
         return apiService.getReviewSummary(productId = productId, limit = limit, lang = lang)
+    }
+
+    suspend fun translateBatch(lang: String, texts: List<String>): List<String> {
+        if (texts.isEmpty()) return emptyList()
+        return apiService.translate(
+            body = TranslateRequestDto(
+                lang = lang,
+                texts = texts,
+            ),
+        ).translations.orEmpty()
     }
 }
