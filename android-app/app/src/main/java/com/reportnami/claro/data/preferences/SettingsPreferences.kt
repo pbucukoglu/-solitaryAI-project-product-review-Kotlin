@@ -12,13 +12,14 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "claro_prefs")
+// Use the same extension function as DeviceIdRepository
+private val Context.dataStore by preferencesDataStore(name = "claro_prefs")
 
 @Singleton
 class SettingsPreferences @Inject constructor(
     private val context: Context
 ) {
-    private val dataStore = context.settingsDataStore
+    private val dataStore = context.dataStore
     
     companion object {
         val DARK_MODE_KEY = booleanPreferencesKey("dark_mode")
