@@ -22,7 +22,7 @@ class AuthInterceptor @Inject constructor(
         
         // Add auth token to protected endpoints
         val token = runBlocking {
-            authPreferences.getToken()
+            authPreferences.getTokenSync()
         }
         
         return if (token != null) {

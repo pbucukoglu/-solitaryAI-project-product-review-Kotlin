@@ -136,7 +136,7 @@ fun RegisterScreen(
         
         if (uiState.error != null) {
             Spacer(modifier = Modifier.height(16.dp))
-            val errorMessage = uiState.error
+            val errorMessage = uiState.error ?: "Unknown error"
             Text(
                 text = errorMessage,
                 color = MaterialTheme.colorScheme.error,

@@ -2,6 +2,7 @@ package com.reportnami.claro.data.auth
 
 import com.reportnami.claro.data.api.model.AuthRequestDto
 import com.reportnami.claro.data.api.model.AuthResponseDto
+import com.reportnami.claro.data.api.model.RefreshTokenRequestDto
 import com.reportnami.claro.data.api.model.RegisterRequestDto
 import com.reportnami.claro.data.api.ApiService
 import kotlinx.coroutines.flow.Flow
@@ -77,7 +78,7 @@ class AuthRepositoryImpl @Inject constructor(
                 return Result.failure(Exception("No refresh token available"))
             }
             
-            val response = apiService.refreshToken(refreshToken)
+            val response = apiService.refreshToken(RefreshTokenRequestDto(refreshToken))
             
             // Update token in preferences
             authPreferences.saveAuthData(
