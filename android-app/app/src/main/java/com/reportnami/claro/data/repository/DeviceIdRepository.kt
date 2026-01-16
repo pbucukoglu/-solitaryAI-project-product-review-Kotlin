@@ -9,9 +9,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 import javax.inject.Inject
+import javax.inject.Singleton
 
 private val Context.dataStore by preferencesDataStore(name = "claro_prefs")
 
+@Singleton
 class DeviceIdRepository @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {

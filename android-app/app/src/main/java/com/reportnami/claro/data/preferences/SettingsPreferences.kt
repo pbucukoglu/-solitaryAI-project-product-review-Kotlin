@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings_preferences")
+val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "claro_prefs")
 
 @Singleton
 class SettingsPreferences @Inject constructor(
