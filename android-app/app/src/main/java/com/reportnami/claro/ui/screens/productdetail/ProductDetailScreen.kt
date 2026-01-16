@@ -212,7 +212,7 @@ fun ProductDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "⭐ ${currentProduct?.averageRating ?: 0}",
+                            text = "⭐ ${String.format("%.1f", currentProduct?.averageRating ?: 0)}",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = stickyAlpha)
                         )
@@ -375,7 +375,7 @@ fun ProductDetailScreen(
                                 ) {
                                     Column {
                                         Text(
-                                            text = "${currentProduct?.averageRating ?: 0}",
+                                            text = "${String.format("%.1f", currentProduct?.averageRating ?: 0)}",
                                             style = MaterialTheme.typography.displaySmall,
                                             fontWeight = FontWeight.Black,
                                             color = MaterialTheme.colorScheme.onSurface
