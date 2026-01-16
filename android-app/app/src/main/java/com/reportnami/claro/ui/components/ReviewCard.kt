@@ -238,9 +238,9 @@ private fun formatDate(dateString: String): String {
         
         when {
             minutes < 1 -> "just now"
-            minutes < 60 -> "$minutes min${if (minutes != 1L) "s" else ""} ago"
-            hours < 24 -> "$hours hour${if (hours != 1L) "s" else ""} ago"
-            days < 7 -> "$days day${if (days != 1L) "s" else ""} ago"
+            minutes < 60 -> "$minutes min${if (minutes > 1) "s" else ""} ago"
+            hours < 24 -> "$hours hour${if (hours > 1) "s" else ""} ago"
+            days < 7 -> "$days day${if (days > 1) "s" else ""} ago"
             else -> {
                 val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
                 outputFormat.format(date)
