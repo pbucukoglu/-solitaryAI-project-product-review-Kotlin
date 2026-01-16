@@ -72,7 +72,7 @@ class AuthRepositoryImpl @Inject constructor(
     
     override suspend fun refreshToken(): Result<String> {
         return try {
-            val refreshToken = authPreferences.getRefreshToken().first()
+            val refreshToken = authPreferences.getRefreshTokenSync()
             if (refreshToken == null) {
                 return Result.failure(Exception("No refresh token available"))
             }
@@ -98,7 +98,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun logout() {
         try {
             // Call logout endpoint if available
-            authPreferences.getToken().first()?.let { token ->
+            authPreferences.getTokenSync()?.let { token ->
                 apiService.logout(token)
             }
         } catch (e: Exception) {

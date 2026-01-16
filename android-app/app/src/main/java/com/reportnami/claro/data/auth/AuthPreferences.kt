@@ -74,11 +74,11 @@ class AuthPreferences @Inject constructor(
         !preferences[TOKEN_KEY].isNullOrBlank()
     }
     
-    suspend fun getToken(): String? {
+    suspend fun getTokenSync(): String? {
         return dataStore.data.first()[TOKEN_KEY]
     }
     
-    suspend fun getRefreshToken(): String? {
+    suspend fun getRefreshTokenSync(): String? {
         return dataStore.data.first()[REFRESH_TOKEN_KEY]
     }
 }
