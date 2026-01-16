@@ -44,6 +44,7 @@ import com.reportnami.claro.ui.theme.ClaroTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 data class Review(
     val id: Long,
@@ -225,9 +226,26 @@ fun ReviewCard(
 private fun formatDate(dateString: String): String {
     return try {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-        val date = inputFormat.parse(dateString)
-        date?.let { outputFormat.format(it) } ?: dateString
+        val date = inputFormat.parse(dateString) ?: return dateString
+        
+        val now = System.currentTimeMillis()
+        val time = date.time
+        val diff = now - time
+        
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(diff)
+        val hours = TimeUnit.MILLISECONDS.toHours(diff)
+        val days = TimeUnit.MILLISECONDS.toDays(diff)
+        
+        when {
+            minutes < 1 -> "just now"
+            minutes < 60 -> "$minutes min${if (minutes != 1L) "s" else ""} ago"
+            hours < 24 -> "$hours hour${if (hours != 1L) "s" else ""} ago"
+            days < 7 -> "$days day${if (days != 1L) "s" else ""} ago"
+            else -> {
+                val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                outputFormat.format(date)
+            }
+        }
     } catch (e: Exception) {
         dateString
     }
