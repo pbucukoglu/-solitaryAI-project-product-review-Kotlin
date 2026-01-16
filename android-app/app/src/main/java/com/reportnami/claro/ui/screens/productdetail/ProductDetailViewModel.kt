@@ -142,15 +142,20 @@ class ProductDetailViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isSubmittingReview = true)
             runCatching {
                 val deviceId = deviceIdRepository.getOrCreate()
-                reviewRepository.createReview(
-                    body = CreateReviewRequestDto(
-                        productId = productId,
-                        comment = comment,
-                        rating = rating,
-                        reviewerName = reviewerName,
-                        deviceId = deviceId
-                    )
+                println("🔍 [ProductDetail] Creating review: productId=$productId, reviewerName=$reviewerName, rating=$rating, comment=$comment, deviceId=$deviceId")
+                
+                val request = CreateReviewRequestDto(
+                    productId = productId,
+                    comment = comment,
+                    rating = rating,
+                    reviewerName = reviewerName,
+                    deviceId = deviceId
                 )
+                println("🔍 [ProductDetail] Request DTO: $request")
+                
+                val result = reviewRepository.createReview(request)
+                println("🔍 [ProductDetail] Review created successfully: $result")
+                result
             }.onSuccess { newReview ->
                 // Add the new review to the current list immediately (optimistic update)
                 val currentProduct = _uiState.value.product
@@ -185,6 +190,8 @@ class ProductDetailViewModel @Inject constructor(
                 delay(500)
                 loadReviews(productId, page = 0, append = false)
             }.onFailure { e ->
+                println("🔍 [ProductDetail] Error creating review: ${e.message}")
+                e.printStackTrace()
                 // Handle error
                 _uiState.value = _uiState.value.copy(
                     error = "Failed to add review: ${e.message}"

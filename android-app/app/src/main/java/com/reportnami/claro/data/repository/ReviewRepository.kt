@@ -29,7 +29,16 @@ class ReviewRepository @Inject constructor(
     }
 
     suspend fun createReview(body: CreateReviewRequestDto): ReviewDto {
-        return apiService.createReview(body)
+        println("🔍 [ReviewRepository] Creating review with body: $body")
+        return try {
+            val result = apiService.createReview(body)
+            println("🔍 [ReviewRepository] Review created successfully: $result")
+            result
+        } catch (e: Exception) {
+            println("🔍 [ReviewRepository] Error creating review: ${e.message}")
+            e.printStackTrace()
+            throw e
+        }
     }
 
     suspend fun toggleHelpful(reviewId: Long, deviceId: String): HelpfulVoteResponseDto {
