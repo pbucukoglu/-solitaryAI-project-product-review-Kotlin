@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.reportnami.claro.data.common.dataStore
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ class SettingsPreferences @Inject constructor(
     companion object {
         val DARK_MODE_KEY = booleanPreferencesKey("dark_mode")
         val FONT_SIZE_KEY = stringPreferencesKey("font_size")
+        val FONT_SCALE_KEY = floatPreferencesKey("font_scale")
     }
     
     val darkMode: Flow<Boolean> = dataStore.data.map { preferences ->
@@ -31,6 +33,10 @@ class SettingsPreferences @Inject constructor(
         preferences[FONT_SIZE_KEY] ?: "Medium"
     }
     
+    val fontScale: Flow<Float> = dataStore.data.map { preferences ->
+        preferences[FONT_SCALE_KEY] ?: 1.0f
+    }
+    
     suspend fun setDarkMode(isDark: Boolean) {
         dataStore.edit { preferences ->
             preferences[DARK_MODE_KEY] = isDark
@@ -38,8 +44,27 @@ class SettingsPreferences @Inject constructor(
     }
     
     suspend fun setFontSize(fontSize: String) {
+        val scale = when (fontSize) {
+            "Small" -> 0.9f
+            "Medium" -> 1.0f
+            "Large" -> 1.15f
+            else -> 1.0f
+        }
         dataStore.edit { preferences ->
             preferences[FONT_SIZE_KEY] = fontSize
+            preferences[FONT_SCALE_KEY] = scale
+        }
+    }
+    
+    suspend fun setFontScale(scale: Float) {
+        val fontSize = when {
+            scale <= 0.95f -> "Small"
+            scale >= 1.05f -> "Large"
+            else -> "Medium"
+        }
+        dataStore.edit { preferences ->
+            preferences[FONT_SIZE_KEY] = fontSize
+            preferences[FONT_SCALE_KEY] = scale
         }
     }
 }

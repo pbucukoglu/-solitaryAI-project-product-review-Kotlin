@@ -31,11 +31,13 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 settingsPreferences.darkMode,
-                settingsPreferences.fontSize
-            ) { darkMode, fontSize ->
+                settingsPreferences.fontSize,
+                settingsPreferences.fontScale
+            ) { darkMode, fontSize, fontScale ->
                 _uiState.value = _uiState.value.copy(
                     isDarkMode = darkMode,
-                    fontSize = fontSize
+                    fontSize = fontSize,
+                    fontScale = fontScale
                 )
             }.collect {}
         }
@@ -56,6 +58,13 @@ class SettingsViewModel @Inject constructor(
         }
     }
     
+    fun updateFontScale(fontScale: Float) {
+        viewModelScope.launch {
+            settingsPreferences.setFontScale(fontScale)
+            _uiState.value = _uiState.value.copy(fontScale = fontScale)
+        }
+    }
+    
     fun logout() {
         viewModelScope.launch {
             authRepository.logout()
@@ -66,6 +75,7 @@ class SettingsViewModel @Inject constructor(
 data class SettingsUiState(
     val isDarkMode: Boolean = false,
     val fontSize: String = "Medium",
+    val fontScale: Float = 1.0f,
     val isLoading: Boolean = false,
     val error: String? = null
 )

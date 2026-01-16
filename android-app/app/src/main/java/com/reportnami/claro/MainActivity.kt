@@ -35,13 +35,15 @@ class MainActivity : ComponentActivity() {
         
         setContent {
             val isDarkMode by settingsPreferences.darkMode.collectAsState(initial = false)
+            val fontScale by settingsPreferences.fontScale.collectAsState(initial = 1.0f)
             val isSystemDarkMode = isSystemInDarkTheme()
             
             // Use user preference or system theme
             val useDarkTheme = isDarkMode
             
             MyApplicationTheme(
-                darkTheme = useDarkTheme
+                darkTheme = useDarkTheme,
+                fontScale = fontScale
             ) {
                 // Set system bar colors based on theme
                 val window = this@MainActivity.window

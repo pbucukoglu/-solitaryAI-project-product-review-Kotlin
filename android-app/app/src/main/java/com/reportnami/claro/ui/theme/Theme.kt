@@ -5,12 +5,15 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
@@ -31,13 +34,18 @@ private val LightColorScheme = lightColorScheme(
     onSurface = ClaroLightText,
 )
 
+// CompositionLocal for font scale
+val LocalFontScale = compositionLocalOf { 1.0f }
+
 @Composable
 fun MyApplicationTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    fontScale: Float = 1.0f,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
+    
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
@@ -72,14 +80,41 @@ fun MyApplicationTheme(
         )
     }
 
+    // Create scaled typography
+    val scaledTypography = Typography(
+        displayLarge = Typography.displayLarge.copy(fontSize = (Typography.displayLarge.fontSize.value * fontScale).sp),
+        displayMedium = Typography.displayMedium.copy(fontSize = (Typography.displayMedium.fontSize.value * fontScale).sp),
+        displaySmall = Typography.displaySmall.copy(fontSize = (Typography.displaySmall.fontSize.value * fontScale).sp),
+        headlineLarge = Typography.headlineLarge.copy(fontSize = (Typography.headlineLarge.fontSize.value * fontScale).sp),
+        headlineMedium = Typography.headlineMedium.copy(fontSize = (Typography.headlineMedium.fontSize.value * fontScale).sp),
+        headlineSmall = Typography.headlineSmall.copy(fontSize = (Typography.headlineSmall.fontSize.value * fontScale).sp),
+        titleLarge = Typography.titleLarge.copy(fontSize = (Typography.titleLarge.fontSize.value * fontScale).sp),
+        titleMedium = Typography.titleMedium.copy(fontSize = (Typography.titleMedium.fontSize.value * fontScale).sp),
+        titleSmall = Typography.titleSmall.copy(fontSize = (Typography.titleSmall.fontSize.value * fontScale).sp),
+        bodyLarge = Typography.bodyLarge.copy(fontSize = (Typography.bodyLarge.fontSize.value * fontScale).sp),
+        bodyMedium = Typography.bodyMedium.copy(fontSize = (Typography.bodyMedium.fontSize.value * fontScale).sp),
+        bodySmall = Typography.bodySmall.copy(fontSize = (Typography.bodySmall.fontSize.value * fontScale).sp),
+        labelLarge = Typography.labelLarge.copy(fontSize = (Typography.labelLarge.fontSize.value * fontScale).sp),
+        labelMedium = Typography.labelMedium.copy(fontSize = (Typography.labelMedium.fontSize.value * fontScale).sp),
+        labelSmall = Typography.labelSmall.copy(fontSize = (Typography.labelSmall.fontSize.value * fontScale).sp),
+    )
+
     CompositionLocalProvider(
         LocalClaroColorsExtra provides extra,
         LocalClaroDimens provides ClaroDimens(),
+        LocalFontScale provides fontScale,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = Typography,
+            typography = scaledTypography,
             content = content
         )
     }
+}
+
+// Helper function to scale font sizes
+@Composable
+fun scaleFontSize(baseSize: androidx.compose.ui.unit.TextUnit): androidx.compose.ui.unit.TextUnit {
+    val fontScale = LocalFontScale.current
+    return (baseSize.value * fontScale).sp
 }
