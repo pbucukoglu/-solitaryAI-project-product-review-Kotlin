@@ -116,6 +116,8 @@ fun ProductListScreen(
 
     ModalBottomSheetLayout(
         sheetState = sheetState,
+        sheetBackgroundColor = MaterialTheme.colorScheme.surface,
+        sheetContentColor = MaterialTheme.colorScheme.onSurface,
         sheetContent = {
             Column(
                 modifier = Modifier
@@ -133,13 +135,23 @@ fun ProductListScreen(
                         text = "Filters & Sort",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     IconButton(onClick = { showFilters = false }) {
-                        Icon(imageVector = Icons.Filled.Close, contentDescription = "Close")
+                        Icon(
+                            imageVector = Icons.Filled.Close, 
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
 
-                Text(text = "Category", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Category", 
+                    style = MaterialTheme.typography.titleSmall, 
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -155,7 +167,12 @@ fun ProductListScreen(
                     }
                 }
 
-                Text(text = "Sort by", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Sort by", 
+                    style = MaterialTheme.typography.titleSmall, 
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     sortOptions.forEach { opt ->
                         SelectChip(
@@ -170,7 +187,12 @@ fun ProductListScreen(
                     }
                 }
 
-                Text(text = "Minimum rating", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Minimum rating", 
+                    style = MaterialTheme.typography.titleSmall, 
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -186,7 +208,12 @@ fun ProductListScreen(
                     }
                 }
 
-                Text(text = "Price range", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Price range", 
+                    style = MaterialTheme.typography.titleSmall, 
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     androidx.compose.material.OutlinedTextField(
                         modifier = Modifier.weight(1f),
@@ -586,6 +613,7 @@ private fun ProductRow(
         Text(
             text = item.name,
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -593,6 +621,7 @@ private fun ProductRow(
         Text(
             text = item.description ?: "",
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
@@ -602,8 +631,14 @@ private fun ProductRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(text = item.category ?: "")
-            Text(text = "⭐ ${item.averageRating ?: "-"} (${item.reviewCount ?: 0})")
+            Text(
+                text = item.category ?: "",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "⭐ ${item.averageRating ?: "-"} (${item.reviewCount ?: 0})",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
