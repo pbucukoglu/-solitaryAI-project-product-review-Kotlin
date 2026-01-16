@@ -600,8 +600,8 @@ fun ProductDetailScreen(
                                     )
                                 }
                             } else {
-                                // Show first 3 reviews
-                                state.reviews.take(3).forEach { reviewDto ->
+                                // Show all reviews
+                                state.reviews.forEach { reviewDto ->
                                     ReviewCard(
                                         review = com.reportnami.claro.ui.components.Review(
                                             id = reviewDto.id,
