@@ -2,6 +2,7 @@ package com.reportnami.claro.di
 
 import com.reportnami.claro.BuildConfig
 import com.reportnami.claro.data.api.ApiService
+import com.reportnami.claro.data.auth.AuthInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +19,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
         val logger = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) {
                 HttpLoggingInterceptor.Level.BODY
@@ -29,6 +30,7 @@ object NetworkModule {
 
         return OkHttpClient.Builder()
             .addInterceptor(logger)
+            .addInterceptor(authInterceptor)
             .build()
     }
 

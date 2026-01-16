@@ -1,10 +1,15 @@
 package com.reportnami.claro.data.api
 
+import com.reportnami.claro.data.api.model.AuthRequestDto
+import com.reportnami.claro.data.api.model.AuthResponseDto
 import com.reportnami.claro.data.api.model.CreateReviewRequestDto
 import com.reportnami.claro.data.api.model.HelpfulVoteResponseDto
 import com.reportnami.claro.data.api.model.PageResponse
 import com.reportnami.claro.data.api.model.ProductDetailDto
 import com.reportnami.claro.data.api.model.ProductDto
+import com.reportnami.claro.data.api.model.RefreshTokenRequestDto
+import com.reportnami.claro.data.api.model.RefreshTokenResponseDto
+import com.reportnami.claro.data.api.model.RegisterRequestDto
 import com.reportnami.claro.data.api.model.ReviewDto
 import com.reportnami.claro.data.api.model.ReviewSummaryResponseDto
 import com.reportnami.claro.data.api.model.TranslateRequestDto
@@ -13,12 +18,34 @@ import com.reportnami.claro.data.api.model.UpdateReviewRequestDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
+
+    // Auth endpoints
+    @POST("/api/auth/login")
+    suspend fun login(
+        @Body body: AuthRequestDto,
+    ): AuthResponseDto
+
+    @POST("/api/auth/register")
+    suspend fun register(
+        @Body body: RegisterRequestDto,
+    ): AuthResponseDto
+
+    @POST("/api/auth/refresh")
+    suspend fun refreshToken(
+        @Body body: RefreshTokenRequestDto,
+    ): RefreshTokenResponseDto
+
+    @POST("/api/auth/logout")
+    suspend fun logout(
+        @Header("Authorization") token: String,
+    )
 
     @GET("/api/products")
     suspend fun getProducts(
