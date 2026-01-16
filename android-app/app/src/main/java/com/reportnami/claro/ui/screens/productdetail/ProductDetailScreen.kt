@@ -45,7 +45,9 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
@@ -522,29 +524,6 @@ fun ProductDetailScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-
-                                if (state.reviews.isNotEmpty()) {
-                                    Button(
-                                        onClick = { currentProduct?.id?.let { onOpenReviews(it) } },
-                                        shape = RoundedCornerShape(12.dp)
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            Text(
-                                                text = "See All",
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                            Icon(
-                                                imageVector = Icons.Default.KeyboardArrowRight,
-                                                contentDescription = "See all reviews",
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
-                                    }
-                                }
                             }
 
                             if (state.isLoadingReviews) {
@@ -667,6 +646,33 @@ fun ProductDetailScreen(
                     }
                 }
 
+                // Show "Load More Reviews" button if there are more reviews
+                if (state.reviewsHasMore && state.reviews.isNotEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Button(
+                                onClick = { viewModel.loadMoreReviews() },
+                                enabled = !state.isLoadingReviews,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if (state.isLoadingReviews) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                } else {
+                                    Text("Load More Reviews")
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Bottom spacing for FAB
                 item {
                     Spacer(modifier = Modifier.height(100.dp))
@@ -712,6 +718,14 @@ fun ProductDetailScreen(
                 },
                 loading = state.isSubmittingReview
             )
+        }
+        
+        // Show error toast/snackbar for review submission errors
+        state.error?.let { error ->
+            LaunchedEffect(error) {
+                // You could show a snackbar here
+                // For now, the error is handled in the ViewModel
+            }
         }
     }
 }

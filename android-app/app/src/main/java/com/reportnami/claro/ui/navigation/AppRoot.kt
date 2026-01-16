@@ -11,6 +11,7 @@ import com.reportnami.claro.ui.screens.reviews.ReviewsScreen
 import com.reportnami.claro.ui.screens.settings.SettingsScreen
 
 object Routes {
+    const val Login = "login"
     const val ProductList = "product_list"
     const val ProductDetail = "product_detail/{productId}"
     const val Reviews = "reviews/{productId}"
@@ -63,7 +64,15 @@ fun AppRoot() {
             )
         }
         composable(Routes.Settings) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onLogout = { 
+                    // Navigate back to login/auth screen
+                    navController.navigate(Routes.Login) {
+                        popUpTo(Routes.ProductList) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

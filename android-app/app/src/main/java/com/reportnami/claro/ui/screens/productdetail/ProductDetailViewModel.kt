@@ -2,15 +2,16 @@ package com.reportnami.claro.ui.screens.productdetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.reportnami.claro.data.api.model.CreateReviewRequestDto
 import com.reportnami.claro.data.api.model.ProductDetailDto
 import com.reportnami.claro.data.api.model.ReviewDto
 import com.reportnami.claro.data.api.model.ReviewSummaryResponseDto
-import com.reportnami.claro.data.api.model.CreateReviewRequestDto
 import com.reportnami.claro.data.repository.DeviceIdRepository
 import com.reportnami.claro.data.repository.ProductRepository
 import com.reportnami.claro.data.repository.ReviewRepository
 import com.reportnami.claro.data.repository.WishlistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -150,13 +151,111 @@ class ProductDetailViewModel @Inject constructor(
                         deviceId = deviceId
                     )
                 )
-            }.onSuccess {
-                // Refresh data
-                load(productId)
+            }.onSuccess { newReview ->
+                // Add the new review to the current list immediately (optimistic update)
+                val currentProduct = _uiState.value.product
+                val currentReviews = _uiState.value.reviews
+                
+                if (currentProduct != null) {
+                    // Update product review count and average rating
+                    val updatedProduct = currentProduct.copy(
+                        reviewCount = (currentProduct.reviewCount ?: 0) + 1,
+                        averageRating = calculateNewAverageRating(
+                            currentReviews + newReview,
+                            currentProduct.averageRating ?: 0.0
+                        )
+                    )
+                    
+                    // Add new review to the list (at the beginning like React Native)
+                    val updatedReviews = listOf(newReview) + currentReviews
+                    
+                    _uiState.value = _uiState.value.copy(
+                        product = updatedProduct,
+                        reviews = updatedReviews
+                    )
+                }
+                
+                // Reset pagination and refresh from server to ensure consistency
+                _uiState.value = _uiState.value.copy(
+                    reviewsPage = 0,
+                    reviewsHasMore = true
+                )
+                
+                // Brief delay to show optimistic update, then refresh
+                delay(500)
+                loadReviews(productId, page = 0, append = false)
             }.onFailure { e ->
-                // Handle error - could add error state
+                // Handle error
+                _uiState.value = _uiState.value.copy(
+                    error = "Failed to add review: ${e.message}"
+                )
             }.also {
                 _uiState.value = _uiState.value.copy(isSubmittingReview = false)
+            }
+        }
+    }
+    
+    private fun calculateNewAverageRating(reviews: List<ReviewDto>, currentAverage: Double): Double {
+        if (reviews.isEmpty()) return currentAverage
+        return reviews.mapNotNull { it.rating }.average()
+    }
+    
+    private fun loadReviews(productId: Long, page: Int = 0, append: Boolean = false) {
+        viewModelScope.launch {
+            try {
+                if (append) {
+                    _uiState.value = _uiState.value.copy(isLoadingReviews = true)
+                } else {
+                    _uiState.value = _uiState.value.copy(isLoadingReviews = true, reviewsError = null)
+                }
+                
+                val response = reviewRepository.getReviewsByProductId(
+                    productId = productId,
+                    page = page,
+                    size = 10,
+                    sortBy = "helpfulCount",
+                    sortDir = "DESC",
+                    minRating = null,
+                )
+                
+                val newReviews = response.content
+                val hasMore = response.last == false
+                
+                if (append) {
+                    // Append to existing reviews (like React Native)
+                    val mergedReviews = _uiState.value.reviews + newReviews
+                    // Remove duplicates
+                    val dedupedReviews = mergedReviews.distinctBy { it.id }
+                    _uiState.value = _uiState.value.copy(
+                        reviews = dedupedReviews,
+                        reviewsPage = page,
+                        reviewsHasMore = hasMore,
+                        isLoadingReviews = false
+                    )
+                } else {
+                    // Replace all reviews (like React Native)
+                    _uiState.value = _uiState.value.copy(
+                        reviews = newReviews,
+                        reviewsPage = page,
+                        reviewsHasMore = hasMore,
+                        isLoadingReviews = false,
+                        reviewsError = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingReviews = false,
+                    reviewsError = "Failed to load reviews: ${e.message}"
+                )
+            }
+        }
+    }
+    
+    fun loadMoreReviews() {
+        val currentState = _uiState.value
+        if (currentState.reviewsHasMore && !currentState.isLoadingReviews) {
+            currentProductId?.let { productId ->
+                loadReviews(productId, page = currentState.reviewsPage + 1, append = true)
             }
         }
     }
