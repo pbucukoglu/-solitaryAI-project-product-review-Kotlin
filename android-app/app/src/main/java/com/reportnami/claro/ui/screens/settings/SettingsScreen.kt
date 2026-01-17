@@ -72,7 +72,12 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val currentUser by viewModel.currentUser.collectAsState(initial = null)
+    val currentUser by viewModel.currentUser.collectAsState()
+    
+    // Debug: Log current user
+    LaunchedEffect(currentUser) {
+        println("DEBUG: SettingsScreen - currentUser = ${currentUser?.email}, role = ${currentUser?.role}")
+    }
     
     // Dialog states
     var showFontSizeDialog by remember { mutableStateOf(false) }

@@ -21,10 +21,22 @@ class SettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
     
-    val currentUser = authRepository.getCurrentUser()
+    private val _currentUser = MutableStateFlow<com.reportnami.claro.data.auth.User?>(null)
+    val currentUser: StateFlow<com.reportnami.claro.data.auth.User?> = _currentUser.asStateFlow()
     
     init {
         loadSettings()
+        observeCurrentUser()
+    }
+    
+    private fun observeCurrentUser() {
+        viewModelScope.launch {
+            authRepository.getCurrentUser().collect { user ->
+                println("DEBUG: SettingsViewModel observeCurrentUser - user = ${user?.email}, role = ${user?.role}")
+                _currentUser.value = user
+                _uiState.value = _uiState.value.copy(currentUser = user)
+            }
+        }
     }
     
     private fun loadSettings() {
@@ -77,5 +89,6 @@ data class SettingsUiState(
     val fontSize: String = "Medium",
     val fontScale: Float = 1.0f,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val currentUser: com.reportnami.claro.data.auth.User? = null
 )
