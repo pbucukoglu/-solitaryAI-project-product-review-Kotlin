@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -50,12 +51,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/products").permitAll()
                 .requestMatchers("/api/products/{id}").permitAll()
+                .requestMatchers("/api/products/{productId}/review-summary").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 
                 // Admin-only endpoints
-                .requestMatchers("/api/products").hasRole("ADMIN")
-                .requestMatchers("/api/products/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/products/{id}").hasRole("ADMIN")
                 
                 // Authenticated users
                 .requestMatchers("/api/products/{id}/reviews").hasRole("USER")
