@@ -352,8 +352,6 @@ fun LoginScreen(
                             onClick = { 
                                 email = "admin@productreview.com"
                                 password = "password"
-                                // Auto-login
-                                viewModel.login(email, password)
                             },
                             enabled = !uiState.isLoading,
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
@@ -367,8 +365,6 @@ fun LoginScreen(
                             onClick = { 
                                 email = "test@example.com"
                                 password = "password"
-                                // Auto-login
-                                viewModel.login(email, password)
                             },
                             enabled = !uiState.isLoading,
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)

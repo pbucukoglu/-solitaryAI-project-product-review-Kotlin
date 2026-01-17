@@ -74,7 +74,7 @@ fun AppRoot(
 
     NavHost(
         navController = navController,
-        startDestination = Routes.Login,
+        startDestination = if (isLoggedIn) Routes.ProductList else Routes.Login,
     ) {
         // Authentication screens
         composable(Routes.Login) {
