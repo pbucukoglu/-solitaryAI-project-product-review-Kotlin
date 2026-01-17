@@ -2,6 +2,15 @@ package com.reportnami.claro.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -9,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,6 +28,7 @@ import com.reportnami.claro.data.auth.AuthRepository
 import com.reportnami.claro.ui.screens.addreview.AddReviewScreen
 import com.reportnami.claro.ui.screens.admin.AddProductScreen
 import com.reportnami.claro.ui.screens.admin.ProductManagementScreen
+import com.reportnami.claro.ui.screens.admin.viewmodel.ProductManagementViewModel
 import com.reportnami.claro.ui.screens.auth.LoginScreen
 import com.reportnami.claro.ui.screens.auth.RegisterScreen
 import com.reportnami.claro.ui.screens.productdetail.ProductDetailScreen
@@ -113,7 +124,8 @@ fun AppRoot(
                 onOpenProduct = { id -> navController.navigate(Routes.productDetail(id)) },
                 onOpenSettings = { navController.navigate(Routes.Settings) },
                 onNavigateToAddProduct = { navController.navigate(Routes.AddProduct) },
-                authPreferences = authPreferences
+                authPreferences = authPreferences,
+                productManagementViewModel = androidx.hilt.navigation.compose.hiltViewModel()
             )
         }
         
@@ -191,6 +203,20 @@ fun AppRoot(
             // TODO: Implement AnalyticsScreen
             // For now, just navigate back
             Box(modifier = Modifier.fillMaxSize()) {
+                // Back button
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .align(Alignment.TopStart)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+                
+                // Center text
                 androidx.compose.material3.Text(
                     text = "Analytics coming soon!",
                     modifier = Modifier.align(Alignment.Center)

@@ -67,10 +67,9 @@ import com.reportnami.claro.data.api.model.ProductDto
 import com.reportnami.claro.data.auth.AuthPreferences
 import com.reportnami.claro.ui.components.ProductCard
 import com.reportnami.claro.ui.theme.ClaroTheme
-import androidx.hilt.navigation.compose.hiltViewModel
+import com.reportnami.claro.ui.screens.admin.viewmodel.ProductManagementViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -80,6 +79,7 @@ fun ProductListScreen(
     onNavigateToAddProduct: () -> Unit = {},
     viewModel: ProductListViewModel = hiltViewModel(),
     authPreferences: AuthPreferences,
+    productManagementViewModel: ProductManagementViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
     val extra = ClaroTheme.colorsExtra
@@ -498,7 +498,9 @@ fun ProductListScreen(
             confirmButton = {
                 Button(
                     onClick = { 
-                        // TODO: Implement delete functionality
+                        productToDelete?.let { productId ->
+                            productManagementViewModel.deleteProduct(productId)
+                        }
                         showDeleteDialog = false
                         productToDelete = null
                     },
