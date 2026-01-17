@@ -5,7 +5,6 @@ import com.productreview.dto.HelpfulVoteResponseDTO;
 import com.productreview.dto.ReviewDTO;
 import com.productreview.dto.UpdateReviewDTO;
 import com.productreview.service.ReviewService;
-import com.productreview.validation.ValidateCreateReview;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,8 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,32 +24,57 @@ public class ReviewController {
     private final ReviewService reviewService;
     
     @PostMapping
-    @PreAuthorize("hasRole('USER')")
-    @ValidateCreateReview
-    public ResponseEntity<ReviewDTO> createReview(@Valid @RequestBody CreateReviewDTO createReviewDTO, Authentication authentication) {
-        ReviewDTO review = reviewService.createReview(createReviewDTO, authentication.getName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(review);
+    public ResponseEntity<?> createReview(@Valid @RequestBody CreateReviewDTO createReviewDTO) {
+        try {
+            ReviewDTO review = reviewService.createReview(createReviewDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(review);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PutMapping("/{reviewId}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ReviewDTO> updateReview(
+    public ResponseEntity<?> updateReview(
             @PathVariable Long reviewId,
-            @Valid @RequestBody UpdateReviewDTO updateReviewDTO,
-            Authentication authentication
+            @Valid @RequestBody UpdateReviewDTO updateReviewDTO
     ) {
-        ReviewDTO updated = reviewService.updateReview(reviewId, updateReviewDTO, authentication.getName());
-        return ResponseEntity.ok(updated);
+        try {
+            ReviewDTO updated = reviewService.updateReview(reviewId, updateReviewDTO);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            if ("FORBIDDEN".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only edit your own review.");
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request");
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().startsWith("Review not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            }
+            throw e;
+        }
     }
 
     @DeleteMapping("/{reviewId}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> deleteReview(
+    public ResponseEntity<?> deleteReview(
             @PathVariable Long reviewId,
-            Authentication authentication
+            @RequestParam String deviceId
     ) {
-        reviewService.deleteReview(reviewId, authentication.getName());
-        return ResponseEntity.noContent().build();
+        try {
+            reviewService.deleteReview(reviewId, deviceId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalStateException e) {
+            if ("FORBIDDEN".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only delete your own review.");
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request");
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().startsWith("Review not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            }
+            throw e;
+        }
     }
     
     @GetMapping("/product/{productId}")
@@ -78,12 +100,20 @@ public class ReviewController {
     }
 
     @PostMapping("/{reviewId}/helpful")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<HelpfulVoteResponseDTO> toggleHelpful(
+    public ResponseEntity<?> toggleHelpful(
             @PathVariable Long reviewId,
-            Authentication authentication
+            @RequestParam String deviceId
     ) {
-        HelpfulVoteResponseDTO response = reviewService.toggleHelpful(reviewId, authentication.getName());
-        return ResponseEntity.ok(response);
+        try {
+            HelpfulVoteResponseDTO response = reviewService.toggleHelpful(reviewId, deviceId);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().startsWith("Review not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            }
+            throw e;
+        }
     }
 }

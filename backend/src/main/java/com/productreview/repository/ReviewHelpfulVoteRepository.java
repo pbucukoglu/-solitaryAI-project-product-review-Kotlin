@@ -9,7 +9,7 @@ import java.util.Optional;
 @Repository
 public interface ReviewHelpfulVoteRepository extends JpaRepository<ReviewHelpfulVote, Long> {
 
-    Optional<ReviewHelpfulVote> findByReviewIdAndUserId(Long reviewId, Long userId);
+    Optional<ReviewHelpfulVote> findByReviewIdAndDeviceId(Long reviewId, String deviceId);
 
     long countByReviewId(Long reviewId);
 }
