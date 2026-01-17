@@ -64,9 +64,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.reportnami.claro.data.api.model.ProductDto
+import com.reportnami.claro.data.auth.AuthPreferences
 import com.reportnami.claro.ui.components.ProductCard
 import com.reportnami.claro.ui.theme.ClaroTheme
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -83,7 +85,7 @@ fun ProductListScreen(
     // Admin state
     var showDeleteDialog by remember { mutableStateOf(false) }
     var productToDelete by remember { mutableStateOf<Long?>(null) }
-    var currentUser by remember { mutableStateOf<com.reportnami.claro.data.auth.User?>(null) }
+    val currentUser by viewModel.currentUser.collectAsState(initial = null)
 
     var showFilters by rememberSaveable { mutableStateOf(false) }
 

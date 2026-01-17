@@ -3,6 +3,7 @@ package com.reportnami.claro.ui.screens.productlist
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.reportnami.claro.data.api.model.ProductDto
+import com.reportnami.claro.data.auth.AuthPreferences
 import com.reportnami.claro.data.repository.ProductRepository
 import com.reportnami.claro.data.repository.WishlistRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +20,7 @@ import javax.inject.Inject
 class ProductListViewModel @Inject constructor(
     private val productRepository: ProductRepository,
     private val wishlistRepository: WishlistRepository,
+    private val authPreferences: AuthPreferences,
 ) : ViewModel() {
 
     data class UiState(
@@ -40,6 +42,9 @@ class ProductListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+    // Expose current user for admin detection
+    val currentUser = authPreferences.getCurrentUser()
 
     private var searchJob: Job? = null
 
