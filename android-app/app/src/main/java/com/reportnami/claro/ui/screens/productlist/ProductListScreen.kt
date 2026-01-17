@@ -82,7 +82,6 @@ fun ProductListScreen(
     productManagementViewModel: ProductManagementViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-    val productManagementState by productManagementViewModel.uiState.collectAsState()
     val extra = ClaroTheme.colorsExtra
     val scope = rememberCoroutineScope()
     
@@ -501,9 +500,6 @@ fun ProductListScreen(
                     onClick = { 
                         productToDelete?.let { productId ->
                             productManagementViewModel.deleteProduct(productId)
-                            
-                            // Refresh product list after delete
-                            viewModel.refresh()
                         }
                         showDeleteDialog = false
                         productToDelete = null

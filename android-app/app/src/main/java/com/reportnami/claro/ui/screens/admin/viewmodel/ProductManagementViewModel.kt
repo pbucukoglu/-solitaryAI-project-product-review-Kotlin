@@ -55,11 +55,14 @@ class ProductManagementViewModel @Inject constructor(
     }
     
     fun deleteProduct(productId: Long) {
+        println("DEBUG: deleteProduct called with productId: $productId")
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true, error = null)
                 
                 val token = authPreferences.getTokenSync()
+                println("DEBUG: Token retrieved: ${if (token.isNullOrEmpty()) "null/empty" else "present"}")
+                
                 if (token.isNullOrEmpty()) {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -68,7 +71,9 @@ class ProductManagementViewModel @Inject constructor(
                     return@launch
                 }
                 
+                println("DEBUG: Making API call to delete product $productId")
                 val response = apiService.deleteProduct("Bearer $token", productId)
+                println("DEBUG: API response - successful: ${response.isSuccessful}, code: ${response.code()}")
                 
                 if (response.isSuccessful) {
                     // Remove product from list
@@ -84,6 +89,7 @@ class ProductManagementViewModel @Inject constructor(
                     kotlinx.coroutines.delay(2000)
                     _uiState.value = _uiState.value.copy(deleteSuccess = false)
                 } else {
+                    println("DEBUG: Delete failed - response code: ${response.code()}, message: ${response.message()}")
                     val errorMessage = when (response.code()) {
                         401 -> "Unauthorized: Admin access required"
                         403 -> "Forbidden: Insufficient permissions"
@@ -97,6 +103,7 @@ class ProductManagementViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                println("DEBUG: Exception in deleteProduct: ${e.message}")
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "Network Error: ${e.message}"
