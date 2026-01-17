@@ -90,16 +90,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { x_version_3_1
-                    2026-01-17 20:29:40.870 14412-14465 HostConnection          com.reportnami.claro                 D  HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_native_sync_v3 ANDROID_EMU_native_sync_v4 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_multi_configs GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_1
-                    2026-01-17 20:29:41.091 14412-14412 System.out              com.reportnami.claro                 I  DEBUG: FAB visibility - isAdmin = true, userRole = Admin
-                    2026-01-17 20:29:41.298 14412-14459 EGL_emulation           com.reportnami.claro                 D  app_time_stats: avg=75.38ms min=3.43ms max=299.58ms count=11
-                    2026-01-17 20:29:44.169 14412-14459 EGL_emulation           com.reportnami.claro                 D  app_time_stats: avg=2869.77ms min=2869.77ms max=2869.77ms count=1
-                    2026-01-17 20:29:44.299 14412-14412 System.out              com.reportnami.claro                 I  DEBUG: SettingsViewModel observeCurrentUser - user = admin@productreview.com, role = Admin
-                    2026-01-17 20:29:44.590 14412-14412 System.out              com.reportnami.claro                 I  DEBUG: SettingsScreen - currentUser = admin@productreview.com, role = Admin
-                    2026-01-17 20:29:44.644 14412-14430 eportnami.claro         com.reportnami.claro                 I  Background young concurrent copying GC freed 36289(1708KB) AllocSpace objects, 7(128KB) LOS objects, 8% free, 9557KB/10MB, paused 789us,18us total 355.915ms
-                    2026-01-17 20:29:44.689 14412-14412 System.out              com.reportnami.claro                 I  DEBUG: FAB visibility - isAdmin = true, userRole = Admin
-                    2026-01-17 20:29:45.182 14412-14459 EGL_emulation           com.reportnami.claro                 D  app_time_stats: avg=18.77ms min=2.82ms max=97.02ms count=20
+                title = { 
                     Text(
                         text = "Settings",
                         style = MaterialTheme.typography.titleLarge,
@@ -164,7 +155,7 @@ fun SettingsScreen(
                             
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = user.fullName,
+                                    text = if (user.role == "Admin") "Admin" else "User",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
