@@ -131,7 +131,7 @@ fun SettingsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = user.name.first().uppercase(),
+                                text = user.fullName.first().uppercase(),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold
@@ -142,7 +142,7 @@ fun SettingsScreen(
                         
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = user.name,
+                                text = user.fullName,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
