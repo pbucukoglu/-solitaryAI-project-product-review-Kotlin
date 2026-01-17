@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +41,8 @@ fun ProductCard(
     onToggleFavorite: (() -> Unit)?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isAdmin: Boolean = false,
+    onDeleteClick: (() -> Unit)? = null,
 ) {
     val extra = ClaroTheme.colorsExtra
     val dimens = ClaroTheme.dimens
@@ -117,6 +122,32 @@ fun ProductCard(
                         contentDescription = "Favorite",
                         tint = if (isFavorite) extra.danger else extra.textSecondary,
                     )
+                }
+
+                // Admin delete button
+                if (isAdmin && onDeleteClick != null) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp)
+                            .size(32.dp)
+                            .shadow(4.dp, CircleShape)
+                            .background(
+                                Color(0xFFE74C3C),
+                                CircleShape,
+                            )
+                            .border(1.dp, Color(0xFFC0392B), CircleShape)
+                            .clip(CircleShape)
+                            .clickable { onDeleteClick() },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Delete Product",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
 

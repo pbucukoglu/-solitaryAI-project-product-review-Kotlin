@@ -27,18 +27,23 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -68,11 +73,17 @@ import kotlinx.coroutines.launch
 fun ProductListScreen(
     onOpenProduct: (Long) -> Unit,
     onOpenSettings: () -> Unit,
+    onNavigateToAddProduct: () -> Unit = {},
     viewModel: ProductListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
     val extra = ClaroTheme.colorsExtra
     val scope = rememberCoroutineScope()
+    
+    // Admin state
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var productToDelete by remember { mutableStateOf<Long?>(null) }
+    var currentUser by remember { mutableStateOf<com.reportnami.claro.data.auth.User?>(null) }
 
     var showFilters by rememberSaveable { mutableStateOf(false) }
 
@@ -269,6 +280,21 @@ fun ProductListScreen(
         Scaffold(
             topBar = {
                 TopAppBar(title = { Text("Products") })
+            },
+            floatingActionButton = {
+                // Show FAB only for admin users
+                if (currentUser?.role == "Admin") {
+                    FloatingActionButton(
+                        onClick = onNavigateToAddProduct,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Product"
+                        )
+                    }
+                }
             }
         ) { padding ->
             Column(
@@ -411,6 +437,11 @@ fun ProductListScreen(
                                 isFavorite = isFav,
                                 onToggleFavorite = { viewModel.toggleFavorite(item.id) },
                                 onClick = { onOpenProduct(item.id) },
+                                isAdmin = currentUser?.role == "Admin",
+                                onDeleteClick = { 
+                                    productToDelete = item.id
+                                    showDeleteDialog = true
+                                }
                             )
                         }
 
@@ -431,6 +462,47 @@ fun ProductListScreen(
             }
         }
         }
+    }
+    
+    // Delete Confirmation Dialog
+    if (showDeleteDialog && productToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                showDeleteDialog = false
+                productToDelete = null
+            },
+            title = {
+                Text("Delete Product")
+            },
+            text = {
+                Text("Are you sure you want to delete this product? This action cannot be undone.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = { 
+                        // TODO: Implement delete functionality
+                        showDeleteDialog = false
+                        productToDelete = null
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        showDeleteDialog = false
+                        productToDelete = null
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
