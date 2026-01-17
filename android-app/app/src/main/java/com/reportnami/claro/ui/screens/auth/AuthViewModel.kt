@@ -55,8 +55,8 @@ class AuthViewModel @Inject constructor(
         }
     }
     
-    fun register(email: String, password: String, name: String) {
-        if (email.isBlank() || password.isBlank() || name.isBlank()) {
+    fun register(email: String, password: String, fullName: String) {
+        if (email.isBlank() || password.isBlank() || fullName.isBlank()) {
             _uiState.value = _uiState.value.copy(error = "All fields are required")
             return
         }
@@ -69,7 +69,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
-            authRepository.register(email, password, name)
+            authRepository.register(email, password, fullName)
                 .onSuccess {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,

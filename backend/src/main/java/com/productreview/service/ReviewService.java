@@ -1,5 +1,6 @@
 package com.productreview.service;
 
+import com.productreview.aspect.ValidateCreateReview;
 import com.productreview.dto.CreateReviewDTO;
 import com.productreview.dto.HelpfulVoteResponseDTO;
 import com.productreview.dto.ReviewDTO;
@@ -25,7 +26,8 @@ public class ReviewService {
     private final ReviewHelpfulVoteRepository reviewHelpfulVoteRepository;
     private final ProductRepository productRepository;
     
-    public ReviewDTO createReview(CreateReviewDTO createReviewDTO) {
+    @ValidateCreateReview
+    public ReviewDTO createReview(CreateReviewDTO createReviewDTO, String userEmail) {
         Product product = productRepository.findById(createReviewDTO.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + createReviewDTO.getProductId()));
         
@@ -44,8 +46,8 @@ public class ReviewService {
         review.setRating(createReviewDTO.getRating());
         review.setReviewerName(createReviewDTO.getReviewerName() != null && !createReviewDTO.getReviewerName().isEmpty() 
                 ? createReviewDTO.getReviewerName() 
-                : "Anonymous");
-        review.setDeviceId(createReviewDTO.getDeviceId());
+                : userEmail);
+        review.setDeviceId(userEmail); // Use email as device identifier for authenticated users
         
         Review savedReview = reviewRepository.save(review);
 
@@ -58,11 +60,12 @@ public class ReviewService {
         return convertToDTO(savedReview);
     }
 
-    public ReviewDTO updateReview(Long reviewId, UpdateReviewDTO updateReviewDTO) {
+    public ReviewDTO updateReview(Long reviewId, UpdateReviewDTO updateReviewDTO, String userEmail) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with id: " + reviewId));
 
-        if (review.getDeviceId() == null || !review.getDeviceId().equals(updateReviewDTO.getDeviceId())) {
+        // Check if user owns this review (either by device ID or email)
+        if (!userEmail.equals(review.getDeviceId())) {
             throw new IllegalStateException("FORBIDDEN");
         }
 
@@ -79,18 +82,19 @@ public class ReviewService {
         review.setRating(updateReviewDTO.getRating());
         review.setReviewerName(updateReviewDTO.getReviewerName() != null && !updateReviewDTO.getReviewerName().isEmpty()
                 ? updateReviewDTO.getReviewerName()
-                : "Anonymous");
+                : userEmail);
 
         Review saved = reviewRepository.save(review);
         recalculateAggregates(review.getProduct().getId());
         return convertToDTO(saved);
     }
 
-    public void deleteReview(Long reviewId, String deviceId) {
+    public void deleteReview(Long reviewId, String deviceId, String userEmail) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found with id: " + reviewId));
 
-        if (review.getDeviceId() == null || !review.getDeviceId().equals(deviceId)) {
+        // Check if user owns this review (either by device ID or email)
+        if (!userEmail.equals(review.getDeviceId())) {
             throw new IllegalStateException("FORBIDDEN");
         }
 
@@ -104,9 +108,9 @@ public class ReviewService {
                 .map(this::convertToDTO);
     }
 
-    public HelpfulVoteResponseDTO toggleHelpful(Long reviewId, String deviceId) {
+    public HelpfulVoteResponseDTO toggleHelpful(Long reviewId, String deviceId, String userEmail) {
         if (deviceId == null || deviceId.trim().isEmpty()) {
-            throw new IllegalArgumentException("deviceId is required");
+            deviceId = userEmail; // Use email as device identifier for authenticated users
         }
 
         Review review = reviewRepository.findById(reviewId)

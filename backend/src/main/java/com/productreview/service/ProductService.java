@@ -2,6 +2,7 @@ package com.productreview.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.productreview.aspect.ValidateCreateProduct;
 import com.productreview.dto.ProductDTO;
 import com.productreview.dto.ProductDetailDTO;
 import com.productreview.entity.Product;
@@ -97,6 +98,37 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
         
         return convertToDetailDTO(product);
+    }
+    
+    @ValidateCreateProduct
+    @Transactional
+    public ProductDTO createProduct(ProductDTO productDTO) {
+        Product product = new Product();
+        product.setName(productDTO.getName());
+        product.setDescription(productDTO.getDescription());
+        product.setCategory(productDTO.getCategory());
+        product.setPrice(productDTO.getPrice());
+        
+        try {
+            List<String> imageUrls = productDTO.getImageUrls();
+            if (imageUrls != null && !imageUrls.isEmpty()) {
+                product.setImageUrls(objectMapper.writeValueAsString(imageUrls));
+            }
+        } catch (Exception e) {
+            // Handle JSON serialization error
+            product.setImageUrls("[]");
+        }
+        
+        Product saved = productRepository.save(product);
+        return convertToDTO(saved, null);
+    }
+    
+    @Transactional
+    public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new RuntimeException("Product not found with id: " + id);
+        }
+        productRepository.deleteById(id);
     }
     
     private List<String> parseImageUrls(String imageUrlsJson) {

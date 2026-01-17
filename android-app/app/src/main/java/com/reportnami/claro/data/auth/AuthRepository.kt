@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
     suspend fun login(email: String, password: String): Result<AuthResult>
-    suspend fun register(email: String, password: String, name: String): Result<AuthResult>
+    suspend fun register(email: String, password: String, fullName: String): Result<AuthResult>
     suspend fun refreshToken(): Result<String>
     suspend fun logout()
     fun getCurrentUser(): Flow<User?>
@@ -14,15 +14,14 @@ interface AuthRepository {
 
 data class AuthResult(
     val token: String,
-    val refreshToken: String,
-    val user: User,
-    val expiresIn: Long
+    val tokenType: String,
+    val expiresIn: Long,
+    val roles: List<String>
 )
 
 data class User(
     val id: Long,
     val email: String,
-    val name: String,
-    val role: String,
-    val avatar: String? = null
+    val fullName: String,
+    val roles: List<String>
 )
