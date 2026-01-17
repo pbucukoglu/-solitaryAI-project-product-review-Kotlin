@@ -74,28 +74,28 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
-    
+
     // Debug: Log current user
     LaunchedEffect(currentUser) {
         println("DEBUG: SettingsScreen - currentUser = ${currentUser?.email}, role = ${currentUser?.role}")
     }
-    
+
     // Dialog states
     var showFontSizeDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-    
+
     // Font size options
     val fontSizes = listOf("Small", "Medium", "Large")
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
                         text = "Settings",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
-                    ) 
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -150,9 +150,9 @@ fun SettingsScreen(
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-                            
+
                             Spacer(modifier = Modifier.width(16.dp))
-                            
+
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = if (user.role == "Admin") "Admin" else "User",
@@ -205,56 +205,56 @@ fun SettingsScreen(
                     }
                 }
             }
-            
+
             // Admin Section (only for admin users)
             currentUser?.let { user ->
                 if (user.role == "Admin") {
                     SettingsSection(title = "Admin Management") {
-                    SettingsItem(
-                        icon = Icons.Filled.Add,
-                        title = "Add Product",
-                        subtitle = "Create new product",
-                        onClick = onNavigateToAddProduct,
-                        action = {
-                            Icon(
-                                imageVector = Icons.Filled.ChevronRight,
-                                contentDescription = "Add product",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    )
-                    
-                    SettingsItem(
-                        icon = Icons.Filled.Delete,
-                        title = "Product Management",
-                        subtitle = "Manage existing products",
-                        onClick = onNavigateToProductManagement,
-                        action = {
-                            Icon(
-                                imageVector = Icons.Filled.ChevronRight,
-                                contentDescription = "Product management",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    )
-                    
-                    SettingsItem(
-                        icon = Icons.Filled.BarChart,
-                        title = "Analytics",
-                        subtitle = "View review statistics",
-                        onClick = onNavigateToAnalytics,
-                        action = {
-                            Icon(
-                                imageVector = Icons.Filled.ChevronRight,
-                                contentDescription = "Analytics",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    )
+                        SettingsItem(
+                            icon = Icons.Filled.Add,
+                            title = "Add Product",
+                            subtitle = "Create new product",
+                            onClick = onNavigateToAddProduct,
+                            action = {
+                                Icon(
+                                    imageVector = Icons.Filled.ChevronRight,
+                                    contentDescription = "Add product",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        )
+
+                        SettingsItem(
+                            icon = Icons.Filled.Delete,
+                            title = "Product Management",
+                            subtitle = "Manage existing products",
+                            onClick = onNavigateToProductManagement,
+                            action = {
+                                Icon(
+                                    imageVector = Icons.Filled.ChevronRight,
+                                    contentDescription = "Product management",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        )
+
+                        SettingsItem(
+                            icon = Icons.Filled.BarChart,
+                            title = "Analytics",
+                            subtitle = "View review statistics",
+                            onClick = onNavigateToAnalytics,
+                            action = {
+                                Icon(
+                                    imageVector = Icons.Filled.ChevronRight,
+                                    contentDescription = "Analytics",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        )
                     }
                 }
             }
-            
+
             // Appearance Section
             SettingsSection(title = "Appearance") {
                 SettingsItem(
@@ -268,7 +268,7 @@ fun SettingsScreen(
                         )
                     }
                 )
-                
+
                 SettingsItem(
                     icon = Icons.Filled.TextFields,
                     title = "Font Size",
@@ -283,7 +283,7 @@ fun SettingsScreen(
                     }
                 )
             }
-            
+
             // About Section
             SettingsSection(title = "About") {
                 SettingsItem(
@@ -299,7 +299,7 @@ fun SettingsScreen(
                     }
                 )
             }
-            
+
             // Logout Section
             Card(
                 modifier = Modifier
@@ -323,9 +323,9 @@ fun SettingsScreen(
                         tint = MaterialTheme.colorScheme.onErrorContainer,
                         modifier = Modifier.size(24.dp)
                     )
-                    
+
                     Spacer(modifier = Modifier.width(16.dp))
-                    
+
                     Text(
                         text = "Logout",
                         style = MaterialTheme.typography.titleMedium,
@@ -334,11 +334,11 @@ fun SettingsScreen(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
-    
+
     // Font Size Dialog
     if (showFontSizeDialog) {
         AlertDialog(
@@ -380,9 +380,9 @@ fun SettingsScreen(
             }
         )
     }
-    
+
     // Language Dialog - REMOVED
-    
+
     // Logout Confirmation Dialog
     if (showLogoutDialog) {
         AlertDialog(
@@ -422,7 +422,7 @@ private fun SettingsSection(
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(vertical = 16.dp)
         )
-        
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -457,9 +457,9 @@ private fun SettingsItem(
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -473,10 +473,10 @@ private fun SettingsItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
             action()
         }
-        
+
         Divider(
             modifier = Modifier.padding(horizontal = 16.dp),
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
