@@ -33,7 +33,7 @@ android {
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"https://solitaryai-project-product-review-production.up.railway.app\""
+                "\"http://10.0.2.2:8080\""
             )
         }
         release {
