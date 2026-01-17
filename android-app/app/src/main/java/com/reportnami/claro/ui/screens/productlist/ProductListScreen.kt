@@ -28,7 +28,6 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
@@ -76,23 +75,12 @@ fun ProductListScreen(
     onOpenSettings: () -> Unit,
     viewModel: ProductListViewModel = hiltViewModel(),
     authPreferences: AuthPreferences,
-    productManagementViewModel: ProductManagementViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-    val productManagementState by productManagementViewModel.uiState.collectAsState()
     val extra = ClaroTheme.colorsExtra
     val scope = rememberCoroutineScope()
     
-    // Refresh product list when deletion is successful
-    LaunchedEffect(productManagementState.deleteSuccess) {
-        if (productManagementState.deleteSuccess) {
-            viewModel.refresh()
-        }
-    }
-    
-    // Admin state
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var productToDelete by remember { mutableStateOf<Long?>(null) }
+    // Admin state - removed delete functionality
     var currentUser by remember { mutableStateOf<com.reportnami.claro.data.auth.User?>(null) }
     
     // Load current user
@@ -442,11 +430,7 @@ fun ProductListScreen(
                                 isFavorite = isFav,
                                 onToggleFavorite = { viewModel.toggleFavorite(item.id) },
                                 onClick = { onOpenProduct(item.id) },
-                                isAdmin = currentUser?.role == "Admin",
-                                onDeleteClick = { 
-                                    productToDelete = item.id
-                                    showDeleteDialog = true
-                                }
+                                isAdmin = false // Remove admin delete from main screen
                             )
                         }
 
@@ -467,49 +451,6 @@ fun ProductListScreen(
             }
         }
         }
-    }
-    
-    // Delete Confirmation Dialog
-    if (showDeleteDialog && productToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { 
-                showDeleteDialog = false
-                productToDelete = null
-            },
-            title = {
-                Text("Delete Product")
-            },
-            text = {
-                Text("Are you sure you want to delete this product? This action cannot be undone.")
-            },
-            confirmButton = {
-                Button(
-                    onClick = { 
-                        productToDelete?.let { productId ->
-                            productManagementViewModel.deleteProduct(productId)
-                        }
-                        showDeleteDialog = false
-                        productToDelete = null
-                    },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { 
-                        showDeleteDialog = false
-                        productToDelete = null
-                    }
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 }
 

@@ -123,8 +123,7 @@ fun AppRoot(
             ProductListScreen(
                 onOpenProduct = { id -> navController.navigate(Routes.productDetail(id)) },
                 onOpenSettings = { navController.navigate(Routes.Settings) },
-                authPreferences = authPreferences,
-                productManagementViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+                authPreferences = authPreferences
             )
         }
         
