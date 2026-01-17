@@ -500,6 +500,8 @@ fun ProductListScreen(
                     onClick = { 
                         productToDelete?.let { productId ->
                             productManagementViewModel.deleteProduct(productId)
+                            // Refresh product list after deletion
+                            viewModel.refresh()
                         }
                         showDeleteDialog = false
                         productToDelete = null
