@@ -66,6 +66,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 fun SettingsScreen(
     onBack: () -> Unit,
     onLogout: () -> Unit,
+    onNavigateToAddProduct: () -> Unit,
+    onNavigateToProductManagement: () -> Unit,
+    onNavigateToAnalytics: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -168,7 +171,7 @@ fun SettingsScreen(
                         icon = Icons.Filled.Add,
                         title = "Add Product",
                         subtitle = "Create new product",
-                        onClick = { /* Navigate to add product screen */ },
+                        onClick = onNavigateToAddProduct,
                         action = {
                             Icon(
                                 imageVector = Icons.Filled.ChevronRight,
@@ -182,7 +185,7 @@ fun SettingsScreen(
                         icon = Icons.Filled.Delete,
                         title = "Product Management",
                         subtitle = "Manage existing products",
-                        onClick = { /* Navigate to product management screen */ },
+                        onClick = onNavigateToProductManagement,
                         action = {
                             Icon(
                                 imageVector = Icons.Filled.ChevronRight,
@@ -196,7 +199,7 @@ fun SettingsScreen(
                         icon = Icons.Filled.BarChart,
                         title = "Analytics",
                         subtitle = "View review statistics",
-                        onClick = { /* Navigate to analytics screen */ },
+                        onClick = onNavigateToAnalytics,
                         action = {
                             Icon(
                                 imageVector = Icons.Filled.ChevronRight,

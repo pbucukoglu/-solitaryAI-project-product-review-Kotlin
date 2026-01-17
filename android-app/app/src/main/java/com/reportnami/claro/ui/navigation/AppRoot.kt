@@ -1,9 +1,12 @@
 package com.reportnami.claro.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -12,6 +15,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.reportnami.claro.data.auth.AuthRepository
 import com.reportnami.claro.ui.screens.addreview.AddReviewScreen
+import com.reportnami.claro.ui.screens.admin.AddProductScreen
+import com.reportnami.claro.ui.screens.admin.ProductManagementScreen
 import com.reportnami.claro.ui.screens.auth.LoginScreen
 import com.reportnami.claro.ui.screens.auth.RegisterScreen
 import com.reportnami.claro.ui.screens.productdetail.ProductDetailScreen
@@ -30,6 +35,9 @@ object Routes {
     const val Reviews = "reviews/{productId}"
     const val AddReview = "add_review/{productId}"
     const val Settings = "settings"
+    const val AddProduct = "add_product"
+    const val ProductManagement = "product_management"
+    const val Analytics = "analytics"
 
     fun productDetail(productId: Long): String = "product_detail/$productId"
     fun reviews(productId: Long): String = "reviews/$productId"
@@ -148,10 +156,42 @@ fun AppRoot(
                             popUpTo(Routes.ProductDetail) { inclusive = true }
                             popUpTo(Routes.Reviews) { inclusive = true }
                             popUpTo(Routes.AddReview) { inclusive = true }
+                            popUpTo(Routes.AddProduct) { inclusive = true }
+                            popUpTo(Routes.ProductManagement) { inclusive = true }
+                            popUpTo(Routes.Analytics) { inclusive = true }
                         }
                     }
-                }
+                },
+                onNavigateToAddProduct = { navController.navigate(Routes.AddProduct) },
+                onNavigateToProductManagement = { navController.navigate(Routes.ProductManagement) },
+                onNavigateToAnalytics = { navController.navigate(Routes.Analytics) }
             )
+        }
+        
+        // Admin screens
+        composable(Routes.AddProduct) {
+            AddProductScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onProductAdded = { navController.popBackStack() }
+            )
+        }
+        
+        composable(Routes.ProductManagement) {
+            ProductManagementScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddProduct = { navController.navigate(Routes.AddProduct) }
+            )
+        }
+        
+        composable(Routes.Analytics) {
+            // TODO: Implement AnalyticsScreen
+            // For now, just navigate back
+            Box(modifier = Modifier.fillMaxSize()) {
+                androidx.compose.material3.Text(
+                    text = "Analytics coming soon!",
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         }
     }
 }

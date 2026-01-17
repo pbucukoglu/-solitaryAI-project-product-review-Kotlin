@@ -22,7 +22,7 @@ class ProductRepository @Inject constructor(
         minPrice: String?,
         maxPrice: String?,
     ): PageResponse<ProductDto> {
-        return apiService.getProducts(
+        return apiService.getProductsPaginated(
             page = page,
             size = size,
             sortBy = sortBy,

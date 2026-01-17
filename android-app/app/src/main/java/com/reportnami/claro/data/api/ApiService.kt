@@ -13,6 +13,7 @@ import com.reportnami.claro.data.api.model.ReviewSummaryResponseDto
 import com.reportnami.claro.data.api.model.TranslateRequestDto
 import com.reportnami.claro.data.api.model.TranslateResponseDto
 import com.reportnami.claro.data.api.model.UpdateReviewRequestDto
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -21,6 +22,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.util.Map
 
 interface ApiService {
 
@@ -37,6 +39,10 @@ interface ApiService {
 
     @GET("/api/products")
     suspend fun getProducts(
+    ): Response<List<ProductDto>>
+
+    @GET("/api/products")
+    suspend fun getProductsPaginated(
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
         @Query("sortBy") sortBy: String = "reviewCount",
@@ -50,13 +56,15 @@ interface ApiService {
 
     @POST("/api/products")
     suspend fun createProduct(
-        @Body body: ProductDto,
-    ): ProductDto
+        @Header("Authorization") authorization: String,
+        @Body body: Map<String, Any>,
+    ): Response<ProductDto>
 
     @DELETE("/api/products/{id}")
     suspend fun deleteProduct(
+        @Header("Authorization") authorization: String,
         @Path("id") id: Long,
-    )
+    ): Response<Void>
 
     @GET("/api/products/{id}")
     suspend fun getProductById(
