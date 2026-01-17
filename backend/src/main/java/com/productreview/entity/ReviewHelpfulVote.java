@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "review_helpful_votes",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_review_helpful_review_device", columnNames = {"review_id", "device_id"})
+                @UniqueConstraint(name = "uk_review_helpful_review_user", columnNames = {"review_id", "user_id"})
         },
         indexes = {
                 @Index(name = "idx_review_helpful_review_id", columnList = "review_id"),
-                @Index(name = "idx_review_helpful_device_id", columnList = "device_id")
+                @Index(name = "idx_review_helpful_user_id", columnList = "user_id")
         }
 )
 @Data
@@ -29,6 +29,7 @@ public class ReviewHelpfulVote {
     @JoinColumn(name = "review_id", nullable = false)
     private Review review;
 
-    @Column(name = "device_id", nullable = false, length = 128)
-    private String deviceId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

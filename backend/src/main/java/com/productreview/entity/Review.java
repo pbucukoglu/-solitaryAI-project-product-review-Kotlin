@@ -30,17 +30,15 @@ public class Review {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    
     @Column(nullable = false, length = 2000)
     private String comment;
     
     @Column(nullable = false)
     private Integer rating;
-    
-    @Column(name = "reviewer_name")
-    private String reviewerName;
-
-    @Column(name = "device_id", length = 128)
-    private String deviceId;
 
     @Column(name = "helpful_count", nullable = false)
     private Long helpfulCount = 0L;

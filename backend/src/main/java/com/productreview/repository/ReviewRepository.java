@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
@@ -27,6 +28,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     );
     
     List<Review> findByProductId(Long productId);
+    
+    Optional<Review> findByProductIdAndUserId(Long productId, Long userId);
     
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.product.id = :productId")
     Double findAverageRatingByProductId(@Param("productId") Long productId);

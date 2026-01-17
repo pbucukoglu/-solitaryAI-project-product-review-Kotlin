@@ -141,8 +141,8 @@ public class ProductService {
                         review.getProduct().getId(),
                         review.getComment(),
                         review.getRating(),
-                        review.getReviewerName(),
-                        review.getDeviceId(),
+                        review.getUser().getFirstName() + " " + review.getUser().getLastName(),
+                        review.getUser().getEmail(),
                         review.getHelpfulCount() == null ? 0L : review.getHelpfulCount(),
                         review.getCreatedAt()
                 ))
