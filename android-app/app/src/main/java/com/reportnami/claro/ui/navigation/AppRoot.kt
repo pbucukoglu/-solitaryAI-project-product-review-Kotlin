@@ -5,6 +5,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,6 +19,7 @@ import com.reportnami.claro.ui.screens.productlist.ProductListScreen
 import com.reportnami.claro.ui.screens.reviews.ReviewsScreen
 import com.reportnami.claro.ui.screens.settings.SettingsScreen
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 object Routes {
@@ -132,17 +135,20 @@ fun AppRoot(
         }
         
         composable(Routes.Settings) {
+            val lifecycleOwner = LocalLifecycleOwner.current
             SettingsScreen(
                 onBack = { navController.popBackStack() },
                 onLogout = { 
                     // Clear auth data and navigate to login
-                    authRepository.logout()
-                    navController.navigate(Routes.Login) {
-                        popUpTo(Routes.ProductList) { inclusive = true }
-                        popUpTo(Routes.Settings) { inclusive = true }
-                        popUpTo(Routes.ProductDetail) { inclusive = true }
-                        popUpTo(Routes.Reviews) { inclusive = true }
-                        popUpTo(Routes.AddReview) { inclusive = true }
+                    lifecycleOwner.lifecycleScope.launch {
+                        authRepository.logout()
+                        navController.navigate(Routes.Login) {
+                            popUpTo(Routes.ProductList) { inclusive = true }
+                            popUpTo(Routes.Settings) { inclusive = true }
+                            popUpTo(Routes.ProductDetail) { inclusive = true }
+                            popUpTo(Routes.Reviews) { inclusive = true }
+                            popUpTo(Routes.AddReview) { inclusive = true }
+                        }
                     }
                 }
             )
