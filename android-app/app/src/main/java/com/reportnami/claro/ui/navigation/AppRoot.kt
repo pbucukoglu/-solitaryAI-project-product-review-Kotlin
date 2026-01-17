@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.reportnami.claro.data.auth.AuthPreferences
 import com.reportnami.claro.data.auth.AuthRepository
 import com.reportnami.claro.ui.screens.addreview.AddReviewScreen
 import com.reportnami.claro.ui.screens.admin.AddProductScreen
@@ -46,7 +47,8 @@ object Routes {
 
 @Composable
 fun AppRoot(
-    authRepository: AuthRepository
+    authRepository: AuthRepository,
+    authPreferences: AuthPreferences
 ) {
     val navController = rememberNavController()
     val isLoggedIn by authRepository.isLoggedIn().collectAsState(initial = false)
@@ -110,7 +112,8 @@ fun AppRoot(
             ProductListScreen(
                 onOpenProduct = { id -> navController.navigate(Routes.productDetail(id)) },
                 onOpenSettings = { navController.navigate(Routes.Settings) },
-                onNavigateToAddProduct = { navController.navigate(Routes.AddProduct) }
+                onNavigateToAddProduct = { navController.navigate(Routes.AddProduct) },
+                authPreferences = authPreferences
             )
         }
         

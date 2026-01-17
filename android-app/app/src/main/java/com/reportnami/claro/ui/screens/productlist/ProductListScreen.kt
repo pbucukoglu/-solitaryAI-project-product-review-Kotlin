@@ -64,9 +64,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.reportnami.claro.data.api.model.ProductDto
+import com.reportnami.claro.data.auth.AuthPreferences
 import com.reportnami.claro.ui.components.ProductCard
 import com.reportnami.claro.ui.theme.ClaroTheme
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -75,6 +79,7 @@ fun ProductListScreen(
     onOpenSettings: () -> Unit,
     onNavigateToAddProduct: () -> Unit = {},
     viewModel: ProductListViewModel = hiltViewModel(),
+    authPreferences: AuthPreferences,
 ) {
     val state by viewModel.uiState.collectAsState()
     val extra = ClaroTheme.colorsExtra
@@ -84,6 +89,16 @@ fun ProductListScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var productToDelete by remember { mutableStateOf<Long?>(null) }
     var currentUser by remember { mutableStateOf<com.reportnami.claro.data.auth.User?>(null) }
+    
+    // Load current user
+    LaunchedEffect(Unit) {
+        authPreferences.getCurrentUser().collect { user ->
+            currentUser = user
+            // Debug: Log user role
+            println("DEBUG: User role = ${user?.role}")
+            println("DEBUG: User email = ${user?.email}")
+        }
+    }
 
     var showFilters by rememberSaveable { mutableStateOf(false) }
 
@@ -283,7 +298,10 @@ fun ProductListScreen(
             },
             floatingActionButton = {
                 // Show FAB only for admin users
-                if (currentUser?.role == "Admin") {
+                val isAdmin = currentUser?.role == "Admin"
+                println("DEBUG: FAB visibility - isAdmin = $isAdmin, userRole = ${currentUser?.role}")
+                
+                if (isAdmin) {
                     FloatingActionButton(
                         onClick = onNavigateToAddProduct,
                         containerColor = MaterialTheme.colorScheme.primary,

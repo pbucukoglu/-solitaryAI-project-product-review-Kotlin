@@ -31,6 +31,19 @@ class AuthRepositoryImpl @Inject constructor(
             // Save auth data locally
             authPreferences.saveAuthData(authResult, email)
             
+            // Create and save user info
+            val role = authResult.roles.firstOrNull()?.replace("ROLE_", "") ?: "USER"
+            println("DEBUG: Login - roles = ${authResult.roles}, extracted role = $role")
+            val user = User(
+                id = 1L, // TODO: Get actual user ID from backend
+                email = email,
+                fullName = "User", // TODO: Get actual name from backend
+                role = role,
+                enabled = true
+            )
+            println("DEBUG: Login - saving user: ${user.email}, role: ${user.role}")
+            authPreferences.saveUserInfo(user)
+            
             Result.success(authResult)
         } catch (e: Exception) {
             Result.failure(e)
