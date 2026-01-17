@@ -28,16 +28,26 @@ class ProductManagementViewModel @Inject constructor(
     fun loadProducts() {
         viewModelScope.launch {
             try {
+                println("DEBUG: ProductManagementViewModel - Loading products...")
                 _uiState.value = _uiState.value.copy(isLoading = true, error = null)
                 
-                val products = apiService.getProductsPaginated()
+                // Get all products with large page size
+                val products = apiService.getProductsPaginated(
+                    page = 0,
+                    size = 1000, // Large number to get all products
+                    sortBy = "id",
+                    sortDir = "ASC"
+                )
+                println("DEBUG: ProductManagementViewModel - API call completed, products count: ${products.content.size}")
                 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     products = products.content,
                     error = null
                 )
+                println("DEBUG: ProductManagementViewModel - UI state updated with ${products.content.size} products")
             } catch (e: Exception) {
+                println("DEBUG: ProductManagementViewModel - Error loading products: ${e.message}")
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "Network Error: ${e.message}"
