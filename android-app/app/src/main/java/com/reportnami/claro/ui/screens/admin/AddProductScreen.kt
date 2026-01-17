@@ -22,6 +22,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
@@ -29,6 +31,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -74,6 +78,21 @@ fun AddProductScreen(
     var price by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
     var imageUrls by remember { mutableStateOf<List<String>>(emptyList()) }
+    var showCategoryDropdown by remember { mutableStateOf(false) }
+    
+    // Predefined categories
+    val categories = listOf(
+        "ELECTRONICS",
+        "CLOTHING", 
+        "BOOKS",
+        "HOME",
+        "SPORTS",
+        "TOYS",
+        "FOOD",
+        "BEAUTY",
+        "AUTOMOTIVE",
+        "OTHER"
+    )
     
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -178,20 +197,42 @@ fun AddProductScreen(
                             shape = RoundedCornerShape(12.dp)
                         )
                         
-                        // Category
-                        OutlinedTextField(
-                            value = category,
-                            onValueChange = { category = it },
-                            label = { Text("Category") },
-                            modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Next
-                            ),
-                            singleLine = true,
-                            enabled = !uiState.isLoading,
-                            shape = RoundedCornerShape(12.dp)
-                        )
+                        // Category Dropdown
+                        Box {
+                            OutlinedTextField(
+                                value = category,
+                                onValueChange = { },
+                                label = { Text("Category") },
+                                modifier = Modifier.fillMaxWidth(),
+                                readOnly = true,
+                                enabled = !uiState.isLoading,
+                                shape = RoundedCornerShape(12.dp),
+                                trailingIcon = {
+                                    IconButton(onClick = { showCategoryDropdown = !showCategoryDropdown }) {
+                                        Icon(
+                                            imageVector = if (showCategoryDropdown) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                            contentDescription = "Select Category"
+                                        )
+                                    }
+                                }
+                            )
+                            
+                            DropdownMenu(
+                                expanded = showCategoryDropdown,
+                                onDismissRequest = { showCategoryDropdown = false },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                categories.forEach { cat ->
+                                    DropdownMenuItem(
+                                        text = { Text(cat) },
+                                        onClick = {
+                                            category = cat
+                                            showCategoryDropdown = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
                         
                         // Price
                         OutlinedTextField(
