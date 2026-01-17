@@ -34,7 +34,7 @@ public class User implements UserDetails {
     @Column(name = "full_name")
     private String fullName;
     
-    @Column(nullable = false)
+    @Column
     private String role;
     
     @Column(name = "created_at")
@@ -43,8 +43,8 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
-    @Column(nullable = false)
-    private boolean enabled;
+    @Column
+    private Boolean enabled;
     
     @PrePersist
     protected void onCreate() {
@@ -59,7 +59,8 @@ public class User implements UserDetails {
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
+        String userRole = role != null ? role : "User";
+        return List.of(new SimpleGrantedAuthority("ROLE_" + userRole.toUpperCase()));
     }
     
     @Override
@@ -84,6 +85,6 @@ public class User implements UserDetails {
     
     @Override
     public boolean isEnabled() {
-        return enabled;
+        return enabled != null ? enabled : true;
     }
 }
