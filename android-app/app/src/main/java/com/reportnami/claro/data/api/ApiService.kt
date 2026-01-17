@@ -1,14 +1,12 @@
 package com.reportnami.claro.data.api
 
-import com.reportnami.claro.data.api.model.AuthRequestDto
-import com.reportnami.claro.data.api.model.AuthResponseDto
+import com.reportnami.claro.data.api.model.LoginRequestDto
+import com.reportnami.claro.data.api.model.LoginResponseDto
 import com.reportnami.claro.data.api.model.CreateReviewRequestDto
 import com.reportnami.claro.data.api.model.HelpfulVoteResponseDto
 import com.reportnami.claro.data.api.model.PageResponse
 import com.reportnami.claro.data.api.model.ProductDetailDto
 import com.reportnami.claro.data.api.model.ProductDto
-import com.reportnami.claro.data.api.model.RefreshTokenRequestDto
-import com.reportnami.claro.data.api.model.RefreshTokenResponseDto
 import com.reportnami.claro.data.api.model.RegisterRequestDto
 import com.reportnami.claro.data.api.model.ReviewDto
 import com.reportnami.claro.data.api.model.ReviewSummaryResponseDto
@@ -29,23 +27,13 @@ interface ApiService {
     // Auth endpoints
     @POST("/api/auth/login")
     suspend fun login(
-        @Body body: AuthRequestDto,
-    ): AuthResponseDto
+        @Body body: LoginRequestDto,
+    ): LoginResponseDto
 
     @POST("/api/auth/register")
     suspend fun register(
         @Body body: RegisterRequestDto,
-    ): AuthResponseDto
-
-    @POST("/api/auth/refresh")
-    suspend fun refreshToken(
-        @Body body: RefreshTokenRequestDto,
-    ): RefreshTokenResponseDto
-
-    @POST("/api/auth/logout")
-    suspend fun logout(
-        @Header("Authorization") token: String,
-    )
+    ): String // Returns success message
 
     @GET("/api/products")
     suspend fun getProducts(

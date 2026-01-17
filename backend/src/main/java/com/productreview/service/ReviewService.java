@@ -1,5 +1,6 @@
 package com.productreview.service;
 
+import com.productreview.annotation.ValidateCreateReview;
 import com.productreview.dto.CreateReviewDTO;
 import com.productreview.dto.HelpfulVoteResponseDTO;
 import com.productreview.dto.ReviewDTO;
@@ -25,6 +26,7 @@ public class ReviewService {
     private final ReviewHelpfulVoteRepository reviewHelpfulVoteRepository;
     private final ProductRepository productRepository;
     
+    @ValidateCreateReview
     public ReviewDTO createReview(CreateReviewDTO createReviewDTO) {
         Product product = productRepository.findById(createReviewDTO.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + createReviewDTO.getProductId()));

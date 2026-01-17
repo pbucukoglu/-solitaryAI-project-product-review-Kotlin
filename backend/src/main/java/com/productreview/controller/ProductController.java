@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -82,6 +83,20 @@ public class ProductController {
     ) {
         ReviewSummaryResponseDTO summary = groqReviewSummaryService.getReviewSummary(productId, limit, lang);
         return ResponseEntity.ok(summary);
+    }
+    
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO productDTO) {
+        // This would need to be implemented in ProductService
+        throw new UnsupportedOperationException("Create product not yet implemented");
+    }
+    
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        // This would need to be implemented in ProductService
+        throw new UnsupportedOperationException("Delete product not yet implemented");
     }
 }
 

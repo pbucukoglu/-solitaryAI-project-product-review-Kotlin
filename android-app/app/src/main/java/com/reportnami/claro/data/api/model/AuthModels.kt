@@ -1,6 +1,6 @@
 package com.reportnami.claro.data.api.model
 
-data class AuthRequestDto(
+data class LoginRequestDto(
     val email: String,
     val password: String
 )
@@ -8,22 +8,29 @@ data class AuthRequestDto(
 data class RegisterRequestDto(
     val email: String,
     val password: String,
-    val name: String
+    val fullName: String
+)
+
+data class LoginResponseDto(
+    val accessToken: String,
+    val tokenType: String,
+    val expiresIn: Long,
+    val roles: List<String>
 )
 
 data class AuthResponseDto(
-    val token: String,
-    val refreshToken: String,
+    val accessToken: String,
+    val tokenType: String,
     val expiresIn: Long,
-    val user: UserDto
+    val roles: List<String>
 )
 
 data class UserDto(
     val id: Long,
     val email: String,
-    val name: String,
+    val fullName: String,
     val role: String,
-    val avatar: String? = null
+    val enabled: Boolean
 )
 
 data class RefreshTokenRequestDto(

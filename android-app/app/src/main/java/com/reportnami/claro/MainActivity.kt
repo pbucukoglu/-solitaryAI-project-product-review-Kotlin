@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
+import com.reportnami.claro.data.auth.AuthRepository
 import com.reportnami.claro.data.preferences.SettingsPreferences
 import com.reportnami.claro.ui.navigation.AppRoot
 import com.reportnami.claro.ui.components.OfflineBanner
@@ -26,6 +27,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var settingsPreferences: SettingsPreferences
+    
+    @Inject
+    lateinit var authRepository: AuthRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +58,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppRoot()
+                    AppRoot(authRepository = authRepository)
                 }
             }
         }
