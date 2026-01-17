@@ -53,31 +53,40 @@ public class AuthController {
     
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getEmail(),
-                        loginRequest.getPassword()
-                )
-        );
+        System.out.println("DEBUG: Login attempt for email: " + loginRequest.getEmail());
         
-        User user = (User) authentication.getPrincipal();
-        String token = jwtService.generateToken(user, user.getId());
-        
-        List<String> roles = user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-        
-        LoginResponseDTO response = LoginResponseDTO.builder()
-                .accessToken(token)
-                .tokenType("Bearer")
-                .expiresIn(3600)
-                .roles(roles)
-                .userId(user.getId())
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(user.getRole())
-                .build();
-        
-        return ResponseEntity.ok(response);
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
+            
+            User user = (User) authentication.getPrincipal();
+            System.out.println("DEBUG: Authentication successful for user: " + user.getEmail() + ", enabled: " + user.isEnabled());
+            
+            String token = jwtService.generateToken(user, user.getId());
+            
+            List<String> roles = user.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList());
+            
+            LoginResponseDTO response = LoginResponseDTO.builder()
+                    .accessToken(token)
+                    .tokenType("Bearer")
+                    .expiresIn(3600)
+                    .roles(roles)
+                    .userId(user.getId())
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .role(user.getRole())
+                    .build();
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("DEBUG: Authentication failed for email: " + loginRequest.getEmail() + ", error: " + e.getMessage());
+            throw e;
+        }
     }
 }
