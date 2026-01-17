@@ -107,6 +107,10 @@ class ProductManagementViewModel @Inject constructor(
     fun resetState() {
         _uiState.value = ProductManagementUiState()
     }
+    
+    fun refresh() {
+        loadProducts()
+    }
 }
 
 data class ProductManagementUiState(

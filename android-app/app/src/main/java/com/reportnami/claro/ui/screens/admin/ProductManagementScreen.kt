@@ -72,7 +72,7 @@ fun ProductManagementScreen(
     var productToDelete by remember { mutableStateOf<Long?>(null) }
     
     LaunchedEffect(Unit) {
-        viewModel.loadProducts()
+        viewModel.refresh()
     }
     
     Box(
