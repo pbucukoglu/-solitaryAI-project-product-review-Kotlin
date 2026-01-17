@@ -57,7 +57,6 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
@@ -66,14 +65,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/products/{productId}/review-summary").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/error").permitAll()
-                
-                // Admin-only endpoints
-                .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/products/{id}").hasRole("ADMIN")
-                
-                // Authenticated users
-                .requestMatchers("/api/products/{id}/reviews").hasRole("USER")
-                .requestMatchers("/api/reviews/**").hasRole("USER")
+                .requestMatchers("/").permitAll()
                 
                 // All other requests need authentication
                 .anyRequest().authenticated()
