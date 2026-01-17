@@ -33,15 +33,7 @@ class AuthPreferences @Inject constructor(
             preferences[TOKEN_KEY] = authResult.accessToken
             preferences[USER_EMAIL_KEY] = email
             // Extract user info from token or roles if needed
-            val role = authResult.roles.firstOrNull()?.replace("ROLE_", "") ?: "USER"
-            preferences[USER_ROLE_KEY] = role
-            
-            // For admin detection, we need to save user info properly
-            // Since we don't have user ID from login response, we'll use email as identifier
-            // and create a temporary user object
-            preferences[USER_NAME_KEY] = email.split("@").firstOrNull() ?: "User"
-            // Use a temporary ID based on email hash (this is not ideal but works for demo)
-            preferences[USER_ID_KEY] = (email.hashCode().toLong() and Long.MAX_VALUE).toString()
+            preferences[USER_ROLE_KEY] = authResult.roles.firstOrNull()?.replace("ROLE_", "") ?: "USER"
         }
     }
     
