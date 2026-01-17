@@ -72,6 +72,10 @@ public class AuthController {
                 .tokenType("Bearer")
                 .expiresIn(3600)
                 .roles(roles)
+                .userId(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(user.getRole())
                 .build();
         
         return ResponseEntity.ok(response);

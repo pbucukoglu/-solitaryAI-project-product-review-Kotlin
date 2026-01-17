@@ -15,7 +15,11 @@ data class LoginResponseDto(
     val accessToken: String,
     val tokenType: String,
     val expiresIn: Long,
-    val roles: List<String>
+    val roles: List<String>,
+    val userId: Long? = null,
+    val email: String? = null,
+    val fullName: String? = null,
+    val role: String? = null
 )
 
 data class AuthResponseDto(

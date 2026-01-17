@@ -17,4 +17,8 @@ public class LoginResponseDTO {
     private String tokenType;
     private long expiresIn;
     private List<String> roles;
+    private Long userId;
+    private String email;
+    private String fullName;
+    private String role;
 }
