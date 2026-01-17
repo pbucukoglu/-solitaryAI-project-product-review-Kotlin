@@ -21,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -80,9 +81,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/reviews").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/api/reviews/{reviewId}/helpful").hasAnyRole("USER", "ADMIN")
                 
-                // Admin only
-                .requestMatchers("/api/products").hasRole("ADMIN")
-                .requestMatchers("/api/products/{id}").hasRole("ADMIN")
+                // Admin only for product management
+                .requestMatchers("/api/admin/products").hasRole("ADMIN")
+                .requestMatchers("/api/admin/products/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/products/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/products/{id}").hasRole("ADMIN")
                 
                 // Any other request needs authentication
                 .anyRequest().authenticated()
