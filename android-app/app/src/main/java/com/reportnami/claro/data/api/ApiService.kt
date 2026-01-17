@@ -48,6 +48,16 @@ interface ApiService {
         @Query("maxPrice") maxPrice: String? = null,
     ): PageResponse<ProductDto>
 
+    @POST("/api/products")
+    suspend fun createProduct(
+        @Body body: ProductDto,
+    ): ProductDto
+
+    @DELETE("/api/products/{id}")
+    suspend fun deleteProduct(
+        @Path("id") id: Long,
+    )
+
     @GET("/api/products/{id}")
     suspend fun getProductById(
         @Path("id") id: Long,

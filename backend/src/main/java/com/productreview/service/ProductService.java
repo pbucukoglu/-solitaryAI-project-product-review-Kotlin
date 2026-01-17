@@ -161,6 +161,45 @@ public class ProductService {
         );
     }
 
+    @Transactional
+    public ProductDTO createProduct(ProductDTO productDTO) {
+        Product product = new Product();
+        product.setName(productDTO.getName());
+        product.setDescription(productDTO.getDescription());
+        product.setCategory(productDTO.getCategory());
+        product.setPrice(productDTO.getPrice());
+        
+        // Convert List<String> to JSON string for storage
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String imageUrlsJson = objectMapper.writeValueAsString(productDTO.getImageUrls());
+            product.setImageUrls(imageUrlsJson);
+        } catch (Exception e) {
+            product.setImageUrls("[]"); // Default empty array
+        }
+        
+        Product savedProduct = productRepository.save(product);
+        
+        return new ProductDTO(
+                savedProduct.getId(),
+                ProductNameUtil.normalizeProductName(savedProduct.getName()),
+                savedProduct.getDescription(),
+                savedProduct.getCategory(),
+                savedProduct.getPrice(),
+                productDTO.getImageUrls(), // Return original list
+                0.0, // New products have no ratings yet
+                0L   // New products have no reviews yet
+        );
+    }
+
+    @Transactional
+    public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new RuntimeException("Product not found with id: " + id);
+        }
+        productRepository.deleteById(id);
+    }
+
     private record Aggregate(Double avgRating, Long reviewCount) {}
 }
 

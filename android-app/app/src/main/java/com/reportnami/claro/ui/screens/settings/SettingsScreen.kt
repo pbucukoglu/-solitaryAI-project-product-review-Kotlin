@@ -157,6 +157,53 @@ fun SettingsScreen(
                 }
             }
             
+            // Admin Section (only for admin users)
+            if (user.role == "Admin") {
+                SettingsSection(title = "Admin Management") {
+                    SettingsItem(
+                        icon = Icons.Filled.Add,
+                        title = "Add Product",
+                        subtitle = "Create new product",
+                        onClick = { /* Navigate to add product screen */ },
+                        action = {
+                            Icon(
+                                imageVector = Icons.Filled.ChevronRight,
+                                contentDescription = "Add product",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                    
+                    SettingsItem(
+                        icon = Icons.Filled.Delete,
+                        title = "Product Management",
+                        subtitle = "Manage existing products",
+                        onClick = { /* Navigate to product management screen */ },
+                        action = {
+                            Icon(
+                                imageVector = Icons.Filled.ChevronRight,
+                                contentDescription = "Product management",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                    
+                    SettingsItem(
+                        icon = Icons.Filled.BarChart,
+                        title = "Analytics",
+                        subtitle = "View review statistics",
+                        onClick = { /* Navigate to analytics screen */ },
+                        action = {
+                            Icon(
+                                imageVector = Icons.Filled.ChevronRight,
+                                contentDescription = "Analytics",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
+            }
+            
             // Appearance Section
             SettingsSection(title = "Appearance") {
                 SettingsItem(
