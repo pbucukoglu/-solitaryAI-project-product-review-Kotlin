@@ -1,119 +1,119 @@
-# 🚀 Setup Guide - Product Review Application
+# 🚀 Kurulum Kılavuzu - Ürün İnceleme Uygulaması
 
-Complete step-by-step guide to set up and run the Product Review Application with PostgreSQL database.
-
----
-
-## 📋 Prerequisites
-
-Before starting, ensure you have the following installed:
-
-### Required Software
-
-1. **Java 17 or higher** - [Download Java](https://adoptium.net/)
-   - Verify installation: `java -version`
-   - Should show Java 17 or higher
-
-2. **Maven 3.6+** - [Download Maven](https://maven.apache.org/download.cgi)
-   - Verify installation: `mvn --version`
-   - Should show Maven 3.6 or higher
-
-3. **Node.js 16+ and npm** - [Download Node.js](https://nodejs.org/)
-   - Verify installation: `node --version` and `npm --version`
-   - Should show Node.js 16+ and npm 8+
-
-4. **Docker Desktop** - [Download Docker Desktop](https://www.docker.com/products/docker-desktop)
-   - **⚠️ Important:** Docker is required for PostgreSQL database
-   - **Alternative:** You can use H2 in-memory database (no Docker needed) - see Step 2.5
-   - Verify installation: `docker --version`
-   - Make sure Docker Desktop is running before starting PostgreSQL
-
-5. **Git** - [Download Git](https://git-scm.com/downloads)
-   - Verify installation: `git --version`
-
-### Optional Software
-
-6. **Android Studio** (for Android emulator) - [Download Android Studio](https://developer.android.com/studio)
-   - Required if you want to run the app on an Android emulator
-   - Includes Android SDK and emulator
-
-7. **DBeaver** (for database inspection) - [Download DBeaver](https://dbeaver.io/download/)
-   - Optional tool to view and manage PostgreSQL database
-   - Not required for running the application
-
-8. **Expo Go app** (for physical device testing) - [iOS](https://apps.apple.com/app/expo-go/id982107779) | [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)
-   - Optional: Only needed if testing on a physical device
-   - Not needed if using Android emulator
+Ürün İnceleme Uygulamasını PostgreSQL veritabanıyla kurmak ve çalıştırmak için adım adım kılavuz.
 
 ---
 
-## 🔧 Installation Guide
+## 📋 Ön Koşullar
 
-### Is Docker Required?
+Başlamadan önce aşağıdaki yazılımların yüklü olduğundan emin olun:
 
-**Short Answer: No, Docker is optional.**
+### Gerekli Yazılımlar
 
-You have two options:
+1. **Java 17 veya üzeri** - [Java'yı İndirin](https://adoptium.net/)
+   - Yüklemeyi doğrulayın: `java -version`
+   - Java 17 veya üzeri göstermelidir
 
-1. **PostgreSQL with Docker** (Recommended for production-like setup)
-   - Requires Docker Desktop installation
-   - Persistent database that survives restarts
-   - Can be inspected with DBeaver
-   - Better for demonstrating real database setup
+2. **Maven 3.6+** - [Maven'ı İndirin](https://maven.apache.org/download.cgi)
+   - Yüklemeyi doğrulayın: `mvn --version`
+   - Maven 3.6 veya üzeri göstermelidir
 
-2. **H2 In-Memory Database** (Quick start, no Docker needed)
-   - No installation required
-   - Data resets when backend restarts
-   - Perfect for quick testing
-   - See Step 2.5 for instructions
+3. **Node.js 16+ ve npm** - [Node.js'i İndirin](https://nodejs.org/)
+   - Yüklemeyi doğrulayın: `node --version` ve `npm --version`
+   - Node.js 16+ ve npm 8+ göstermelidir
 
-**Choose based on your needs:**
-- **For quick testing:** Use H2 (skip Docker installation)
-- **For production demo or DBeaver inspection:** Use PostgreSQL with Docker
+4. **Docker Desktop** - [Docker Desktop'ı İndirin](https://www.docker.com/products/docker-desktop)
+   - **Önemli:** Docker, PostgreSQL veritabanı için gereklidir
+   - **Alternatif:** H2 bellek içi veritabanını kullanabilirsiniz (Docker gerekmez) - bkz. 2.5. Adım
+   - Yüklemeyi doğrulayın: `docker --version`
+   - PostgreSQL'u başlatmadan önce Docker Desktop'ın çalıştığından emin olun
 
-### Installing Docker Desktop
+5. **Git** - [Git'i İndirin](https://git-scm.com/downloads)
+   - Yüklemeyi doğrulayın: `git --version`
 
-**⚠️ Only install Docker if you want to use PostgreSQL database.** You can skip this section if using H2.
+### İsteğe Bağlı Yazılımlar
 
-#### Windows Installation:
+6. **Android Studio** (Android emülatörü için) - [Android Studio'yu İndirin](https://developer.android.com/studio)
+   - Android uygulamasını geliştirmek için gereklidir
+   - Kotlin eklentisi etkin olmalıdır
 
-1. **Download Docker Desktop:**
-   - Go to: https://www.docker.com/products/docker-desktop
-   - Click "Download for Windows"
-   - Save the installer file (`Docker Desktop Installer.exe`)
+7. **DBeaver** (veritabanı incelemesi için) - [DBeaver'ı İndirin](https://dbeaver.io/download/)
+   - İsteğe bağlı araç, PostgreSQL veritabanını görüntülemek ve yönetmek için
+   - Uygulamayı çalıştırmak için gerekmez
 
-2. **Run the Installer:**
-   - Double-click `Docker Desktop Installer.exe`
-   - Follow the installation wizard
-   - Check "Use WSL 2 instead of Hyper-V" if prompted (recommended)
-   - Click "Ok" when installation completes
+8. **Expo Go uygulaması** (fiziksel cihaz testi için) - [iOS](https://apps.apple.com/app/expo-go/id982107779) | [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)
+   - İsteğe bağlı: Sadece fiziksel cihazda test ediyorsanız gereklidir
+   - Android emülatörü kullanıyorsanız gerekmez
 
-3. **Restart Your Computer:**
-   - Docker will prompt you to restart
-   - Save your work and restart
+---
 
-4. **Launch Docker Desktop:**
-   - After restart, Docker Desktop should start automatically
-   - If not, find "Docker Desktop" in Start Menu and launch it
-   - Wait for Docker to start (you'll see a whale icon in system tray)
-   - Status should show "Docker Desktop is running"
+## 🔧 Kurulum Kılavuzu
 
-5. **Verify Installation:**
-   - Open PowerShell
-   - Run: `docker --version`
-   - You should see: `Docker version XX.XX.X, build ...`
-   - Run: `docker-compose --version`
-   - You should see: `Docker Compose version vX.X.X`
+### Docker Gerekli mi?
 
-6. **Troubleshooting:**
-   - If Docker doesn't start, check Windows features:
-     - Go to: Control Panel → Programs → Turn Windows features on or off
-     - Enable "Virtual Machine Platform" and "Windows Subsystem for Linux" (if using WSL 2)
-   - If port 5432 is already in use:
-     - Check: `netstat -ano | findstr :5432`
-     - Stop the service using port 5432 or change PostgreSQL port in `docker-compose.yml`
+**Kısa Cevap: Hayır, Docker isteğe bağlıdır.**
 
-#### Mac Installation:
+İki seçeneğiniz vardır:
+
+1. **PostgreSQL ile Docker** (Üretim için önerilir)
+   - Docker Desktop yüklemesi gereklidir
+   - Kalıcı veritabanı, yeniden başlatmalarda veri kaybı olmaz
+   - DBeaver ile incelenebilir
+   - Gerçek veritabanı kurulumunu göstermek için daha iyidir
+
+2. **H2 Bellek İçi Veritabanı** (Hızlı başlangıç, Docker gerekmez)
+   - Hiçbir kurulum gerekmez
+   - Veri, arka uç yeniden başlatıldığında sıfırlanır
+   - Hızlı test için idealdir
+   - Ayrıntılı talimatlar için 2.5. Adıma bakın
+
+**İhtiyacınıza göre seçin:**
+- **Hızlı test için:** H2 kullanın (Docker yüklemesini atlayın)
+- **Üretim demo veya DBeaver incelemesi için:** PostgreSQL ile Docker kullanın
+
+### Docker Desktop'ı Yüklemek
+
+**Önemli:** Docker'u yalnızca PostgreSQL veritabanını kullanmak istiyorsanız yükleyin. H2 kullanıyorsanız bu bölümü atlayabilirsiniz.
+
+#### Windows Kurulumu:
+
+1. **Docker Desktop'ı İndirin:**
+   - https://www.docker.com/products/docker-desktop adresine gidin
+   - "Windows için İndir" düğmesine tıklayın
+   - Yükleme dosyasını kaydedin (`Docker Desktop Installer.exe`)
+
+2. **Kurulumu Başlatın:**
+   - `Docker Desktop Installer.exe` dosyasına çift tıklayın
+   - Kurulum sihirbazını takip edin
+   - "WSL 2 kullan" seçeneğini seçin (önerilir)
+   - Kurulum tamamlandığında "Tamam" düğmesine tıklayın
+
+3. **Bilgisayarınızı Yeniden Başlatın:**
+   - Docker, yeniden başlatmanızı isteyecektir
+   - Çalışmanızı kaydedin ve yeniden başlatın
+
+4. **Docker Desktop'ı Başlatın:**
+   - Yeniden başlatma sonrasında Docker Desktop otomatik olarak başlayacaktır
+   - Başlatılmazsa, Başlat menüsünden "Docker Desktop"ı bulun ve başlatın
+   - Docker'un başladığını bekleyin (sistem tepsisinde bir balina simgesi görünecektir)
+   - Durum "Docker Desktop çalışıyor" olmalıdır
+
+5. **Kurulumu Doğrulayın:**
+   - PowerShell'i açın
+   - `docker --version` komutunu çalıştırın
+   - "Docker version XX.XX.X, build ..." çıktısı görmelisiniz
+   - `docker-compose --version` komutunu çalıştırın
+   - "Docker Compose version vX.X.X" çıktısı görmelisiniz
+
+6. **Sorun Giderme:**
+   - Docker başlatılmazsa, Windows özelliklerini kontrol edin:
+     - Denetim Masası → Programlar → Windows özelliklerini açma/kapama
+     - "Sanal Makine Platformu" ve "Windows Alt Sistem"i (WSL 2 kullanıyorsanız) etkinleştirin
+   - 5432 numaralı port zaten kullanılıyorsa:
+     - `netstat -ano | findstr :5432` komutunu çalıştırın
+     - 5432 numaralı portu kullanan hizmeti durdurun veya PostgreSQL portunu `docker-compose.yml` dosyasında değiştirin
+
+#### Mac Kurulumu:
 
 1. **Download Docker Desktop:**
    - Go to: https://www.docker.com/products/docker-desktop
