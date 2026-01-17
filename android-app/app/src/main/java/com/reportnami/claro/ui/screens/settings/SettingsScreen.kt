@@ -17,13 +17,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -158,8 +161,9 @@ fun SettingsScreen(
             }
             
             // Admin Section (only for admin users)
-            if (user.role == "Admin") {
-                SettingsSection(title = "Admin Management") {
+            currentUser?.let { user ->
+                if (user.role == "Admin") {
+                    SettingsSection(title = "Admin Management") {
                     SettingsItem(
                         icon = Icons.Filled.Add,
                         title = "Add Product",
@@ -201,6 +205,7 @@ fun SettingsScreen(
                             )
                         }
                     )
+                    }
                 }
             }
             
