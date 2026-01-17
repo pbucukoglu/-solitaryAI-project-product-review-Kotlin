@@ -13,9 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,12 +24,9 @@ public class ReviewController {
     private final ReviewService reviewService;
     
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> createReview(@Valid @RequestBody CreateReviewDTO createReviewDTO) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String userEmail = authentication.getName();
-            ReviewDTO review = reviewService.createReview(createReviewDTO, userEmail);
+            ReviewDTO review = reviewService.createReview(createReviewDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(review);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -40,15 +34,12 @@ public class ReviewController {
     }
 
     @PutMapping("/{reviewId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> updateReview(
             @PathVariable Long reviewId,
             @Valid @RequestBody UpdateReviewDTO updateReviewDTO
     ) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String userEmail = authentication.getName();
-            ReviewDTO updated = reviewService.updateReview(reviewId, updateReviewDTO, userEmail);
+            ReviewDTO updated = reviewService.updateReview(reviewId, updateReviewDTO);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -66,15 +57,12 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{reviewId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> deleteReview(
             @PathVariable Long reviewId,
             @RequestParam String deviceId
     ) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String userEmail = authentication.getName();
-            reviewService.deleteReview(reviewId, deviceId, userEmail);
+            reviewService.deleteReview(reviewId, deviceId);
             return ResponseEntity.noContent().build();
         } catch (IllegalStateException e) {
             if ("FORBIDDEN".equals(e.getMessage())) {
@@ -112,15 +100,12 @@ public class ReviewController {
     }
 
     @PostMapping("/{reviewId}/helpful")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> toggleHelpful(
             @PathVariable Long reviewId,
             @RequestParam String deviceId
     ) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String userEmail = authentication.getName();
-            HelpfulVoteResponseDTO response = reviewService.toggleHelpful(reviewId, deviceId, userEmail);
+            HelpfulVoteResponseDTO response = reviewService.toggleHelpful(reviewId, deviceId);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

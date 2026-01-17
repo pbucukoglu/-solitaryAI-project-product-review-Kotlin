@@ -8,21 +8,22 @@ data class AuthRequestDto(
 data class RegisterRequestDto(
     val email: String,
     val password: String,
-    val fullName: String
+    val name: String
 )
 
 data class AuthResponseDto(
-    val accessToken: String,
-    val tokenType: String,
+    val token: String,
+    val refreshToken: String,
     val expiresIn: Long,
-    val roles: List<String>
+    val user: UserDto
 )
 
 data class UserDto(
     val id: Long,
     val email: String,
-    val fullName: String,
-    val roles: List<String>
+    val name: String,
+    val role: String,
+    val avatar: String? = null
 )
 
 data class RefreshTokenRequestDto(

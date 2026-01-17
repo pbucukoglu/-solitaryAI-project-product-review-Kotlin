@@ -1,52 +1,28 @@
 package com.productreview.config;
 
 import com.productreview.entity.Product;
-import com.productreview.entity.User;
 import com.productreview.repository.ProductRepository;
-import com.productreview.repository.UserRepository;
 import com.productreview.util.ProductNameUtil;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
-import java.util.Set;
 
 @Configuration
 @Profile("dev")
-@RequiredArgsConstructor
 public class DataInitializer {
     
     private final ProductRepository productRepository;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+
+    public DataInitializer(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
     
     @Bean
     public CommandLineRunner initData() {
         return args -> {
-            // Initialize users first
-            if (userRepository.count() == 0) {
-                // Create admin user
-                User admin = new User();
-                admin.setEmail("admin@example.com");
-                admin.setPassword(passwordEncoder.encode("Admin123!"));
-                admin.setFullName("Admin User");
-                admin.setRoles(Set.of(User.Role.ADMIN));
-                userRepository.save(admin);
-                
-                // Create regular user
-                User user = new User();
-                user.setEmail("user@example.com");
-                user.setPassword(passwordEncoder.encode("User123!"));
-                user.setFullName("Regular User");
-                user.setRoles(Set.of(User.Role.USER));
-                userRepository.save(user);
-            }
-            
-            // Initialize products
             if (productRepository.count() == 0) {
                 // Electronics
                 Product p1 = new Product();

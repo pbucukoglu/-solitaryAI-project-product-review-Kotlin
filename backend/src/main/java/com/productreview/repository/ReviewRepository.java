@@ -39,9 +39,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT r.product.id, AVG(r.rating), COUNT(r) FROM Review r WHERE r.product.id IN :productIds GROUP BY r.product.id")
     List<Object[]> findAggregatesByProductIds(@Param("productIds") List<Long> productIds);
-    
-    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Review r WHERE r.product.id = :productId AND r.deviceId = :userEmail")
-    boolean existsByProductIdAndUserEmail(@Param("productId") Long productId, @Param("userEmail") String userEmail);
 }
 
 
