@@ -27,7 +27,6 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
@@ -37,7 +36,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -76,7 +74,6 @@ import javax.inject.Inject
 fun ProductListScreen(
     onOpenProduct: (Long) -> Unit,
     onOpenSettings: () -> Unit,
-    onNavigateToAddProduct: () -> Unit = {},
     viewModel: ProductListViewModel = hiltViewModel(),
     authPreferences: AuthPreferences,
     productManagementViewModel: ProductManagementViewModel = hiltViewModel(),
@@ -303,24 +300,6 @@ fun ProductListScreen(
         Scaffold(
             topBar = {
                 TopAppBar(title = { Text("Products") })
-            },
-            floatingActionButton = {
-                // Show FAB only for admin users
-                val isAdmin = currentUser?.role == "Admin"
-                println("DEBUG: FAB visibility - isAdmin = $isAdmin, userRole = ${currentUser?.role}")
-                
-                if (isAdmin) {
-                    FloatingActionButton(
-                        onClick = onNavigateToAddProduct,
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Product"
-                        )
-                    }
-                }
             }
         ) { padding ->
             Column(

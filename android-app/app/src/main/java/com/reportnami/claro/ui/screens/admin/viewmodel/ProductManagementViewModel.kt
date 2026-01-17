@@ -30,21 +30,13 @@ class ProductManagementViewModel @Inject constructor(
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true, error = null)
                 
-                val response = apiService.getProducts()
+                val products = apiService.getProductsPaginated()
                 
-                if (response.isSuccessful) {
-                    val products = response.body() ?: emptyList()
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        products = products,
-                        error = null
-                    )
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = "Failed to load products: ${response.message()}"
-                    )
-                }
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    products = products.content,
+                    error = null
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
